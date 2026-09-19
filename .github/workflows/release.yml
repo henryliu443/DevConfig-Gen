@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -34,7 +35,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install build tools
-        run: python -m pip install build twine
+        run: python -m pip install build
 
       - name: Build sdist and wheel
         run: python -m build
@@ -49,7 +50,4 @@ jobs:
             --generate-notes
 
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
