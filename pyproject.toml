@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devconfig-gen"
+version = "0.3.0"
+authors = [
+  { name = "henryliu443", email = "henryliu443@gmail.com" },
+]
+description = "Provider-based developer configuration generation engine and CLI"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0" }
+keywords = ["configuration", "json", "yaml", "code-generation", "cli"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=5.1"]
+
+[project.scripts]
+devconfig-gen = "devconfig_gen.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+devconfig_gen = ["py.typed"]

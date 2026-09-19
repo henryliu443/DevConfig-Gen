@@ -1,0 +1,18 @@
+{
+  "service": {
+    "name": "checkout-api",
+    "version": "2.4.0",
+    "port": 8080,
+    "environment": "production",
+    "replicas": 3,
+    "labels": {
+      "team": "payments",
+      "tier": "backend"
+    },
+    "health_check": {
+      "path": "/healthz",
+      "interval_seconds": 15,
+      "timeout_seconds": 5
+    }
+  }
+}
