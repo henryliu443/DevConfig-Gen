@@ -8,6 +8,7 @@ declarative step metadata, and JSON or YAML output.
 
 from __future__ import annotations
 
+import difflib
 from typing import Any, Mapping, Optional, Sequence, Tuple
 
 from .. import formats
@@ -208,7 +209,7 @@ class ServiceProvider:
 
         for key in raw:
             if key not in _KNOWN_FIELDS:
-                diagnostics.append(Diagnostic(f"{base}.{key}", f"unknown field: '{base}.{key}'"))
+                diagnostics.append(self._unknown_field(base, key, _KNOWN_FIELDS))
 
         config = {
             "service": {
@@ -235,6 +236,15 @@ class ServiceProvider:
     @staticmethod
     def _missing(path: str) -> Diagnostic:
         return Diagnostic(path, f"missing required field: '{path}'")
+
+    @staticmethod
+    def _unknown_field(base: str, key: str, known) -> Diagnostic:
+        path = f"{base}.{key}"
+        message = f"unknown field: '{path}'"
+        suggestion = difflib.get_close_matches(key, sorted(known), n=1, cutoff=0.6)
+        if suggestion:
+            message += f"; did you mean '{base}.{suggestion[0]}'?"
+        return Diagnostic(path, message)
 
     def _read_required_string(
         self, raw: Mapping, key: str, base: str, errors: list
@@ -351,9 +361,7 @@ class ServiceProvider:
 
         for key in candidate:
             if key not in _KNOWN_HEALTH_FIELDS:
-                errors.append(
-                    Diagnostic(f"{path}.{key}", f"unknown field: '{path}.{key}'")
-                )
+                errors.append(self._unknown_field(path, key, _KNOWN_HEALTH_FIELDS))
 
         return health
 

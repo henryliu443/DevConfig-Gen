@@ -69,6 +69,18 @@ class TestServiceProvider(unittest.TestCase):
         errors = self.provider.validate(build({"name": "web", "port": 80, "bogus": True}))
         self.assertIn("unknown field: 'service.bogus'", errors)
 
+    def test_unknown_field_suggests_close_match(self):
+        errors = self.provider.validate(build({"name": "web", "port": 80, "portt": 1}))
+        self.assertTrue(any("did you mean 'service.port'?" in message for message in errors))
+
+    def test_unknown_health_field_suggests_close_match(self):
+        errors = self.provider.validate(
+            build({"name": "web", "port": 80, "health_check": {"intervall_seconds": 5}})
+        )
+        self.assertTrue(
+            any("did you mean 'service.health_check.interval_seconds'?" in m for m in errors)
+        )
+
     def test_invalid_environment_is_reported(self):
         errors = self.provider.validate(
             build({"name": "web", "port": 80, "environment": "prod"})

@@ -73,11 +73,14 @@ class TestProviderMetadata(unittest.TestCase):
         self.assertEqual(diagnostics[0].message, "something is wrong")
         self.assertEqual(diagnostics[0].field, "")
 
-    def test_service_provider_and_json_provider_registered(self):
+    def test_builtin_providers_registered(self):
+        from devconfig_gen.providers import EnvProvider
+
         from devconfig_gen.registry import default_registry
 
-        self.assertEqual(default_registry.names(), ("json", "service"))
+        self.assertEqual(default_registry.names(), ("env", "json", "service"))
         self.assertIsInstance(default_registry.get("service"), ServiceProvider)
+        self.assertIsInstance(default_registry.get("env"), EnvProvider)
 
 
 if __name__ == "__main__":

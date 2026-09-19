@@ -7,7 +7,7 @@ the Python API share one validation, generation, and persistence path.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence, Union
 
 from . import formats
 from .models import (
@@ -38,40 +38,74 @@ def generate(
     return result
 
 
+def _set_nested(target: dict, path: str, value: Any) -> None:
+    parts = path.split(".")
+    current = target
+    for part in parts[:-1]:
+        if part not in current or not isinstance(current[part], dict):
+            current[part] = {}
+        current = current[part]
+    current[parts[-1]] = value
+
+
 def build_request(
     *,
     context: Any = None,
-    input_path: Optional[str] = None,
+    input_path: Optional[Union[str, Path, Sequence[Any]]] = None,
     options: Optional[Mapping[str, Any]] = None,
     input_format: Optional[str] = None,
+    overrides: Optional[Mapping[str, Any]] = None,
 ) -> GenerationRequest:
-    """Build a request from an in-memory context and/or an input file."""
+    """Build a request from an in-memory context and/or multiple input files with overrides."""
 
+    merged_context = dict(context) if isinstance(context, Mapping) else (context or {})
     if input_path is not None:
-        context = formats.load_file(input_path, input_format)
-    if context is None:
-        context = {}
-    return GenerationRequest(context=context, options=dict(options or {}))
+        if isinstance(input_path, (str, Path)):
+            paths = [input_path]
+        elif isinstance(input_path, Sequence):
+            paths = list(input_path)
+        else:
+            paths = [input_path]
+
+        for p in paths:
+            loaded = formats.load_file(p, input_format)
+            if isinstance(merged_context, Mapping) and isinstance(loaded, Mapping):
+                merged_context = formats.deep_merge(merged_context, loaded)
+            else:
+                merged_context = loaded
+
+    if overrides:
+        if not isinstance(merged_context, dict):
+            merged_context = {}
+        for key, val in overrides.items():
+            _set_nested(merged_context, key, val)
+
+    return GenerationRequest(context=merged_context, options=dict(options or {}))
 
 
 def generate_pipeline(
     provider: str,
     *,
     context: Any = None,
-    input_path: Optional[str] = None,
+    input_path: Optional[Union[str, Path, Sequence[Any]]] = None,
     options: Optional[Mapping[str, Any]] = None,
     output_dir: Optional[str] = None,
     output_format: Optional[str] = None,
     input_format: Optional[str] = None,
     registry: Optional[ProviderRegistry] = None,
+    overrides: Optional[Mapping[str, Any]] = None,
 ) -> GenerationResult:
-    """Run the full pipeline from a context or input file to optional output."""
+    """Run the full pipeline from multi-source inputs to optional output."""
 
     merged = dict(options or {})
     if output_format is not None:
         merged["format"] = output_format
     request = build_request(
-        context=context, input_path=input_path, options=merged, input_format=input_format
+        context=context,
+        input_path=input_path,
+        options=merged,
+        input_format=input_format,
+        overrides=overrides,
     )
     return generate(provider, request, registry=registry, output_dir=output_dir)
 
@@ -101,15 +135,20 @@ def validate_request(
     provider: str,
     *,
     context: Any = None,
-    input_path: Optional[str] = None,
+    input_path: Optional[Union[str, Path, Sequence[Any]]] = None,
     options: Optional[Mapping[str, Any]] = None,
     input_format: Optional[str] = None,
+    overrides: Optional[Mapping[str, Any]] = None,
     registry: Optional[ProviderRegistry] = None,
 ) -> Sequence[str]:
     """Return provider validation errors without generating or writing output."""
 
     request = build_request(
-        context=context, input_path=input_path, options=options, input_format=input_format
+        context=context,
+        input_path=input_path,
+        options=options,
+        input_format=input_format,
+        overrides=overrides,
     )
     selected = (registry or default_registry).get(provider)
     return tuple(selected.validate(request))
@@ -119,15 +158,20 @@ def diagnose_request(
     provider: str,
     *,
     context: Any = None,
-    input_path: Optional[str] = None,
+    input_path: Optional[Union[str, Path, Sequence[Any]]] = None,
     options: Optional[Mapping[str, Any]] = None,
     input_format: Optional[str] = None,
+    overrides: Optional[Mapping[str, Any]] = None,
     registry: Optional[ProviderRegistry] = None,
 ) -> Sequence[Diagnostic]:
     """Return structured diagnostics without generating or writing output."""
 
     request = build_request(
-        context=context, input_path=input_path, options=options, input_format=input_format
+        context=context,
+        input_path=input_path,
+        options=options,
+        input_format=input_format,
+        overrides=overrides,
     )
     selected = (registry or default_registry).get(provider)
     diagnose = getattr(selected, "diagnose", None)

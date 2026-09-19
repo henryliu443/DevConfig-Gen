@@ -51,6 +51,19 @@ class YamlError(FormatError):
     """Raised for errors raised by the bundled YAML subset parser."""
 
 
+def deep_merge(base: Any, overlay: Any) -> Any:
+    """Recursively merge overlay into base."""
+    if isinstance(base, Mapping) and isinstance(overlay, Mapping):
+        merged = dict(base)
+        for key, value in overlay.items():
+            if key in merged and isinstance(merged[key], Mapping) and isinstance(value, Mapping):
+                merged[key] = deep_merge(merged[key], value)
+            else:
+                merged[key] = value
+        return merged
+    return overlay
+
+
 def normalize_format(value: Optional[str]) -> Optional[str]:
     """Return the canonical format name for ``value`` or ``None``."""
 
@@ -124,6 +137,25 @@ def resolve_format(
     return normalize_format(default) or JSON
 
 
+def coerce_scalar(value: Any) -> Any:
+    """Interpret a string as a JSON value when possible.
+
+    ``"9090"`` becomes ``9090``, ``"true"`` becomes ``True``, ``"null"`` becomes
+    ``None``. Non-JSON text such as ``"production"`` is returned unchanged, and
+    non-string inputs pass through untouched.
+    """
+
+    if not isinstance(value, str):
+        return value
+    text = value.strip()
+    if text == "":
+        return value
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return value
+
+
 def loads(text: str, fmt: Optional[str] = None) -> Any:
     """Parse ``text`` as JSON or YAML.
 
@@ -182,7 +214,7 @@ def dumps(data: Any, fmt: str = JSON) -> str:
     if canonical is None:
         raise FormatError("a format is required to serialize data")
     if canonical == JSON:
-        return json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+        return json.dumps(data, indent=2, sort_keys=False, ensure_ascii=False) + "\n"
     return _yaml_dumps(data)
 
 
@@ -486,34 +518,45 @@ class _Parser:
                 block_indent = line.indent
             collected.append(line.raw[block_indent:] if len(line.raw) >= block_indent else line.content)
             self.pos += 1
-        while collected and collected[-1] is None:
-            collected.pop()
+
         keep = indicator.endswith("+")
         strip = indicator.endswith("-")
-        if keep:
-            text = "\n".join("" if item is None else item for item in collected)
-        elif strip:
-            text = "\n".join("" if item is None else item for item in collected)
-        else:
-            text = "\n".join("" if item is None else item for item in collected)
+
+        trailing_blanks = 0
+        while collected and collected[-1] is None:
+            collected.pop()
+            trailing_blanks += 1
+
+        raw_lines = ["" if item is None else item for item in collected]
         if indicator[0] == ">":
-            folded = []
-            previous_blank = True
-            for item in collected:
-                if item is None:
-                    folded.append("")
-                    previous_blank = True
-                elif previous_blank:
-                    folded.append(item)
-                    previous_blank = False
+            parts = []
+            pending_breaks = 0
+            first = True
+            for item in raw_lines:
+                if item == "":
+                    pending_breaks += 1
+                    continue
+                if first:
+                    parts.append(item)
+                    first = False
+                elif pending_breaks:
+                    parts.append("\n" * pending_breaks + item)
+                    pending_breaks = 0
                 else:
-                    folded.append(" " + item)
-            text = "".join(folded)
+                    parts.append(" " + item)
+            core = "".join(parts)
+        else:
+            core = "\n".join(raw_lines)
+
         if strip:
-            text = text.rstrip("\n")
-        elif not keep:
-            text = text.rstrip("\n") + "\n"
-        return text
+            return core.rstrip("\n")
+        if keep:
+            if not core:
+                return "\n" * trailing_blanks
+            return core.rstrip("\n") + "\n" * (1 + trailing_blanks)
+        if not core:
+            return ""
+        return core.rstrip("\n") + "\n"
 
 
 def _looks_like_mapping_entry(text: str) -> bool:

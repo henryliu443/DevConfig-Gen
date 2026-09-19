@@ -12,10 +12,17 @@ class TestJsonFormat(unittest.TestCase):
         text = formats.dumps(data, "json")
         self.assertEqual(formats.loads(text, "json"), data)
 
-    def test_json_dump_is_sorted_and_newline_terminated(self):
+    def test_json_dump_preserves_insertion_order(self):
         text = formats.dumps({"b": 1, "a": 2}, "json")
         self.assertTrue(text.endswith("\n"))
-        self.assertLess(text.index('"a"'), text.index('"b"'))
+        self.assertLess(text.index('"b"'), text.index('"a"'))
+
+    def test_json_and_yaml_agree_on_key_order(self):
+        data = {"b": 1, "a": {"z": 1, "y": 2}}
+        json_text = formats.dumps(data, "json")
+        yaml_text = formats.dumps(data, "yaml")
+        self.assertLess(json_text.index('"b"'), json_text.index('"a"'))
+        self.assertLess(yaml_text.index("b:"), yaml_text.index("a:"))
 
     def test_invalid_json_reports_format_error(self):
         with self.assertRaises(formats.FormatError) as ctx:
@@ -76,6 +83,17 @@ class TestYamlFormat(unittest.TestCase):
     def test_literal_block_scalar(self):
         data = formats.loads("script: |\n  line one\n  line two\n", "yaml")
         self.assertEqual(data["script"], "line one\nline two\n")
+
+    def test_block_scalar_chomping_modes(self):
+        self.assertEqual(formats.loads("a: |\n  x\n  y\n", "yaml")["a"], "x\ny\n")
+        self.assertEqual(formats.loads("a: |-\n  x\n  y\n", "yaml")["a"], "x\ny")
+        self.assertEqual(formats.loads("a: |+\n  x\n  y\n\n", "yaml")["a"], "x\ny\n\n")
+
+    def test_folded_block_scalar(self):
+        self.assertEqual(formats.loads("a: >\n  x\n  y\n", "yaml")["a"], "x y\n")
+        self.assertEqual(formats.loads("a: >-\n  x\n  y\n", "yaml")["a"], "x y")
+        self.assertEqual(formats.loads("a: >\n  x\n\n  y\n", "yaml")["a"], "x\ny\n")
+        self.assertEqual(formats.loads("a: >+\n  x\n\n", "yaml")["a"], "x\n\n")
 
     def test_invalid_indentation_reports_error(self):
         with self.assertRaises(formats.FormatError):
@@ -140,6 +158,22 @@ class TestFormatDetectionAndIO(unittest.TestCase):
         self.assertEqual(formats.resolve_format("yaml", name="x.json"), "yaml")
         self.assertEqual(formats.resolve_format(None, name="x.yml"), "yaml")
         self.assertEqual(formats.resolve_format(None, default="json"), "json")
+
+
+class TestCoercion(unittest.TestCase):
+    def test_coerce_scalar_interprets_json_literals(self):
+        self.assertEqual(formats.coerce_scalar("9090"), 9090)
+        self.assertEqual(formats.coerce_scalar("true"), True)
+        self.assertEqual(formats.coerce_scalar("false"), False)
+        self.assertEqual(formats.coerce_scalar("null"), None)
+        self.assertEqual(formats.coerce_scalar("1.5"), 1.5)
+        self.assertEqual(formats.coerce_scalar('"quoted"'), "quoted")
+
+    def test_coerce_scalar_leaves_plain_text_and_empty_alone(self):
+        self.assertEqual(formats.coerce_scalar("production"), "production")
+        self.assertEqual(formats.coerce_scalar("1.2.0"), "1.2.0")
+        self.assertEqual(formats.coerce_scalar(""), "")
+        self.assertEqual(formats.coerce_scalar(5), 5)
 
 
 if __name__ == "__main__":
