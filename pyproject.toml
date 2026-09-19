@@ -22,6 +22,7 @@ dependencies = []
 
 [project.optional-dependencies]
 yaml = ["PyYAML>=5.1"]
+dev = ["build", "wheel", "PyYAML>=5.1"]
 
 [project.scripts]
 devconfig-gen = "devconfig_gen.cli:main"

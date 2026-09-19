@@ -16,6 +16,8 @@ from .engine import (
 )
 from .formats import (
     FormatError,
+    coerce_scalar,
+    deep_merge,
     dump_data,
     dump_file,
     dumps,
@@ -33,6 +35,7 @@ from .models import (
     ProviderStep,
 )
 from .registry import ProviderRegistry, default_registry
+from .validation import ValidationError
 
 __all__ = [
     "ConfigProvider",
@@ -44,7 +47,10 @@ __all__ = [
     "ProviderField",
     "ProviderRegistry",
     "ProviderStep",
+    "ValidationError",
     "build_request",
+    "coerce_scalar",
+    "deep_merge",
     "default_registry",
     "describe_provider",
     "diagnose_request",

@@ -15,3 +15,8 @@ venv/
 htmlcov/
 
 generated/
+
+# .env files may contain secrets; the env provider writes them here by default.
+.env
+.env.*
+!.env.example

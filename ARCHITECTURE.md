@@ -19,12 +19,12 @@ CLI (`generate`/`validate`)   `init` wizard   `ui` studio
                                    v
 engine.py  ---- build_request / generate_pipeline / generate_from_file
   |            diagnose_request / describe_provider
-  |            (the single shared pipeline)
+  |            (the single shared pipeline, with multi-source deep_merge)
   v
-ProviderRegistry -> ConfigProvider (validate / diagnose / generate / steps)
+ProviderRegistry -> ConfigProvider (`json`, `service`, `env`)
   |
   v
-formats.py  (JSON/YAML load, dump, detection, media types)
+formats.py  (JSON/YAML load, dump, detection, media types, deep_merge, coerce_scalar)
 validation.py (path-aware Diagnostic helpers)
 ```
 
@@ -49,20 +49,41 @@ helpers (`generate_pipeline`, `generate_from_file`, `validate_request`,
 `diagnose_request`, `describe_provider`) only build a request and delegate. The
 CLI calls these helpers and adds no logic.
 
+`build_request()` assembles the request context from an in-memory mapping,
+multiple input files (deep-merged left to right via `formats.deep_merge`), and
+dotted-path `overrides` applied last.
+
 Persistence maps `media_type` to a serializer (`application/json`,
-`application/yaml`) and refuses artifact names that escape the output
-directory.
+`application/yaml`); pre-rendered string artifacts such as `.env` are written
+verbatim. Artifact names that escape the output directory are refused.
+
+### Multi-source data pipeline (`deep_merge` and overrides)
+
+When multiple input documents are provided to `build_request` or `generate_pipeline`:
+
+1. Each input path is read and parsed via `formats.load_file` with automatic
+   JSON/YAML format detection.
+2. Documents are merged left to right using `formats.deep_merge`:
+   - Nested mappings are merged recursively (nested keys combine).
+   - Non-mapping values (scalars, lists) overwrite prior values.
+   - Neither input dictionary is mutated.
+3. Dotted-path overrides (e.g. `--set service.port=9090`) are coerced via
+   `formats.coerce_scalar` (preserving booleans, numbers, and null) and applied
+   last via `_set_nested`, guaranteeing command-line precedence.
 
 ### Formats (`formats.py`)
 
 - `loads` / `load_file` / `load_data` for input;
 - `dumps` / `dump_data` / `dump_file` for output;
 - `detect_format` / `resolve_format` for format selection;
-- `media_type_for` / `format_from_media_type` for artifact metadata.
+- `media_type_for` / `format_from_media_type` for artifact metadata;
+- `deep_merge` for multi-source input merging;
+- `coerce_scalar` to interpret CLI/`--set` strings as JSON literals.
 
 JSON uses the standard library. YAML uses PyYAML when installed and otherwise
 a bundled subset parser/serializer with no external dependencies. See the
-README for the exact support boundary.
+README for the exact support boundary. Both JSON and YAML preserve insertion
+order so the provider's semantic field order is deterministic across formats.
 
 ### Validation (`validation.py`)
 
@@ -79,6 +100,8 @@ while `Diagnostic.field` keeps the full dotted path for tooling.
 - `service` — the complete example provider. It normalizes defaults, coerces
   numeric strings, validates every field with a structured diagnostic, exposes
   declarative `steps`, and emits a structured service configuration document.
+- `env` — flattens a nested mapping into `UPPER_SNAKE_CASE` `.env` text,
+  demonstrating a non-JSON output format and a provider-driven schema step.
 
 ### Interactive clients (`interactive.py`, `web_ui.py`)
 
@@ -119,7 +142,9 @@ These modules are imported lazily from `devconfig_gen.__init__` (PEP 562), so
    explicit `output_dir` is supplied.
 6. Provider metadata (`diagnose`, `steps`, `describe_schema`) is optional;
    minimal providers work with `name`, `validate`, and `generate` alone.
-7. No remote operation, system mutation, credential handling, or deployment is
+7. Serialization is deterministic: JSON and YAML both preserve insertion order,
+   so output is byte-for-byte stable across runs and formats.
+8. No remote operation, system mutation, credential handling, or deployment is
    part of the core engine. The only filesystem writes are explicit
    `output_dir` writes, bounded by the WebUI workspace sandbox.
 

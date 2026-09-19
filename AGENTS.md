@@ -8,8 +8,10 @@ side effects.
 
 - Do not add network, deployment, service-management, credential, or
   system-mutation behavior to the core engine.
-- Keep the CLI thin: it must call the shared pipeline in
-  `devconfig_gen.engine`, never re-implement generation logic.
+- Keep the CLI and the `init`/`ui` clients thin: they must call the shared
+  pipeline in `devconfig_gen.engine`, never re-implement generation logic.
+- Keep output deterministic: JSON and YAML preserve insertion order, so
+  generated artifacts stay byte-for-byte stable.
 - Every behavior change needs a test. Run the suite before finishing:
 
   ```bash
