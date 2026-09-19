@@ -2,7 +2,7 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)
-![Tests](https://img.shields.io/badge/tests-132%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-134%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
 DevConfig-Gen 是一个开发者工具，用于从结构化输入数据和映射关系生成和校验结构化配置。它围绕一个轻量的 Provider 契约构建，使生成流水线独立于任何特定的配置格式或目标系统。多个输入文档可以在生成前进行合并和覆盖。
@@ -11,8 +11,8 @@ A developer tool for generating and validating structured configuration from str
 
 内置三个 Provider / Ships with three providers:
 
+- `custom` — 无 schema 的通用文档，任意 JSON/YAML 层级可增删清空 / schema-free generic document with arbitrary nesting you can add, remove, or clear;
 - `json` — 无依赖的透传/重新序列化 / dependency-free pass-through/re-serialization;
-- `service` — 完整的规范化、严格校验和 JSON/YAML 输出示例 / normalization, strict validation, and JSON/YAML output;
 - `env` — 将嵌套数据扁平化为 `UPPER_SNAKE_CASE` 的 `.env` 文件 / flattens nested data into an `UPPER_SNAKE_CASE` `.env` file.
 
 ## 它是什么 / What it is
@@ -32,14 +32,14 @@ DevConfig-Gen：
 ```bash
 pip install devconfig-gen
 devconfig-gen generate \
-  --provider service --input examples/service.yaml --output-dir generated --format yaml
-devconfig-gen validate --provider service --input examples/service.yaml
+  --provider custom --input examples/custom.yaml --output-dir generated --format yaml
+devconfig-gen validate --provider custom --input examples/custom.yaml
 ```
 
 想要引导式流程？运行终端向导或打开本地 Web 工作台 / Prefer a guided flow?
 
 ```bash
-devconfig-gen init --provider service   # 终端向导 / terminal wizard
+devconfig-gen init --provider custom   # 终端向导 / terminal wizard
 devconfig-gen ui                         # Web 工作台 / web studio
 ```
 
@@ -69,15 +69,15 @@ pip install -e ".[yaml]"
 
 ```bash
 devconfig-gen providers
-# env / json / service
+# custom / env / json
 ```
 
 生成配置 / Generate configuration:
 
 ```bash
 devconfig-gen generate \
-  --provider service \
-  --input examples/service.yaml \
+  --provider custom \
+  --input examples/custom.yaml \
   --output-dir generated \
   --format yaml
 ```
@@ -85,28 +85,26 @@ devconfig-gen generate \
 仅校验不写入 / Validate without writing:
 
 ```bash
-devconfig-gen validate --provider service --input examples/service.yaml
+devconfig-gen validate --provider custom --input examples/custom.yaml
 ```
 
 校验失败时报告字段路径 / Validation failure reports field paths:
 
 ```bash
-$ devconfig-gen validate --provider service --input broken.yaml
-invalid: missing required field: 'service.name'
-invalid: port must be between 1 and 65535, got 99999
-invalid: environment must be one of development, staging, production, got 'prod'
+$ devconfig-gen validate --provider env --input broken.yaml
+invalid: variables must not be empty
 ```
 
 结构化诊断输出 / Structured diagnostics:
 
 ```bash
-devconfig-gen validate --provider service --input broken.yaml --json
+devconfig-gen validate --provider env --input broken.yaml --json
 ```
 
 查看 Provider Schema / Inspect provider schema:
 
 ```bash
-devconfig-gen schema --provider service
+devconfig-gen schema --provider custom
 ```
 
 ### 交互式终端向导 / Interactive Terminal Wizard
@@ -114,33 +112,29 @@ devconfig-gen schema --provider service
 适用于无头环境、SSH 会话 / For headless servers, SSH sessions:
 
 ```bash
-devconfig-gen init --provider service
+devconfig-gen init --provider custom
 ```
 
-向导提示每个字段，含默认值、类型校验、选项、边界检查 / Prompts every field with defaults, type validation, choices, bounds checking.
+向导按 `ProviderField.type` 提示每个字段，含默认值、类型校验、选项、边界检查 / Prompts every field by type with defaults, type validation, choices, bounds checking.
 
 ```text
 ========================================================
-  DevConfig-Gen Interactive Wizard: 'service'
+  DevConfig-Gen Interactive Wizard: 'custom'
   Answer the prompts below. Press Enter to use defaults.
 ========================================================
 
---- [1/3] Service identity ---
-? service.name (required): checkout-api
-? service.version [0.1.0]:
+--- [1/1] Custom document ---
+  自由构建任意嵌套的 JSON/YAML 结构；任意层级都可增删或清空。
+? document (load document file or enter entries):
+    Path to JSON/YAML file (or press enter for key=value input): examples/custom.yaml
+    [✓] Loaded document from examples/custom.yaml
 
---- [2/3] Runtime ---
-? service.port (min 1, max 65535) (required): 99999
-  [!] Value must be <= 65535.
-? service.port (min 1, max 65535) (required): 8080
-? service.environment - Select option:
-    1) development
-    2) staging
-    3) production
-  Enter choice number or name [development]: 3
-...
+Validating configuration...
 [✓] All validations passed!
-[✓] Generated artifact: .../service.yaml
+
+Select output format (1: YAML [default], 2: JSON): 1
+Writing configuration to '.'...
+[✓] Generated artifact: .../custom.yaml
 ```
 
 ### Web 可视化工作台 / Configuration Studio WebUI
@@ -158,8 +152,12 @@ devconfig-gen ui --workspace ~/projects/my-app   # 绑定项目目录 / bind to 
 - 中英双语界面，一键切换，偏好本地保存 / Bilingual UI (中文/English) with one-click toggle and saved preference;
 - Apple 原生排版，亮色/暗色主题 / Apple-native typography, light/dark theme;
 - 分步表单向导，内联校验 / Step-by-step wizard with inline validation;
+- `custom` Provider 递归树编辑器：任意层级增删字段/项、切换类型、逐层清空 / recursive tree editor for the `custom` provider: add/remove fields or items at any depth, switch types, clear per node;
+- `json` Provider 文档上传与内联编辑器（拖拽 `.json`/`.yaml` 反向解析）/ document drop-zone and inline editor for the `json` provider (drag `.json`/`.yaml` to backfill);
+- 顶部「全部清空」一键重置当前 Provider 内容 / header "Clear All" resets the current provider;
 - 双栏实时预览 / Dual-pane live preview;
 - 模板预设、文件上传、草稿保存、磁盘导出 / Template presets, file upload, auto-save, disk export;
+- 输出格式开关（YAML/JSON，XML 及未来格式已预留）/ output format switch (YAML/JSON; XML and future formats reserved);
 - 零外部依赖 / Zero external build dependencies.
 
 Provider 的步骤与字段元数据自带 `i18n` 翻译（内置 Provider 已提供中文）/ Provider step and field metadata carry optional `i18n` translations (the built-in providers ship Chinese).
@@ -174,15 +172,44 @@ Provider 的步骤与字段元数据自带 `i18n` 翻译（内置 Provider 已�
 
 ```bash
 devconfig-gen generate \
-  --provider service \
+  --provider custom \
   --input configs/base.yaml \
   --input configs/prod.json \
-  --set service.port=9090 \
-  --set service.environment=production \
+  --set app.port=9090 \
+  --set app.environment=production \
   --output-dir dist --format yaml
 ```
 
 `--set` 值自动解析 JSON 类型 / `--set` values parsed as JSON when possible (`true`→bool, `42`→int, `null`→null).
+
+### 生成任意结构的自定义文档 / Generating an arbitrary custom document
+
+`custom` Provider 不限定 schema，任意 JSON/YAML 层级都能生成 / The `custom` provider imposes no schema; any JSON/YAML nesting is generated as-is:
+
+```bash
+devconfig-gen generate --provider custom --input configs/anything.yaml --output-dir dist --format yaml
+```
+
+```python
+from devconfig_gen import GenerationRequest, generate
+
+result = generate(
+    "custom",
+    GenerationRequest(
+        context={"document": {"app": {"name": "web", "limits": {"cpu": "500m"}}}},
+        options={"format": "yaml"},
+    ),
+)
+```
+
+在 Web 工作台中选择 `custom`，它提供两种编辑模式 / In the studio, `custom` offers two editing modes:
+
+- **结构模式**：递归树编辑器，任意层级增删字段/项、切换类型（string/number/boolean/object/array/null）、逐层清空 / **Tree mode**: a recursive editor to add/remove fields or items at any depth, switch types, and clear per node;
+- **文本模式**：直接输入 JSON/YAML，支持列表 `[1,2,3,4,5]`、嵌套 `{"1":{"2":{}}}`、YAML 缩进与 `0: [1,2,3,4,5]` 等任意混合 / **Text mode**: type JSON/YAML directly — lists `[1,2,3,4,5]`, nesting `{"1":{"2":{}}}`, YAML indentation, and `0: [1,2,3,4,5]`, freely mixed.
+
+顶层可以是映射、列表或标量 / The root may be a mapping, a list, or a scalar.
+
+顶部「全部清空」一键重置 / The header "Clear All" resets the current provider.
 
 ### 生成 .env 文件 / Generating a .env file
 
@@ -206,19 +233,19 @@ from devconfig_gen import GenerationRequest, generate, generate_from_file
 
 # 内存上下文 / In-memory context
 result = generate(
-    "service",
+    "custom",
     GenerationRequest(
-        context={"name": "checkout-api", "port": 8080, "environment": "production"},
+        context={"document": {"app": {"name": "checkout-api", "port": 8080}}},
         options={"format": "yaml"},
     ),
 )
 artifact = result.artifacts[0]
-print(artifact.name, artifact.media_type)   # service.yaml application/yaml
+print(artifact.name, artifact.media_type)   # custom.yaml application/yaml
 
 # 文件到文件，与 CLI 相同流水线 / File to file, same pipeline as CLI
 generate_from_file(
-    "service",
-    "examples/service.yaml",
+    "custom",
+    "examples/custom.yaml",
     output_dir="generated",
     output_format="yaml",
 )
@@ -229,7 +256,7 @@ generate_from_file(
 ```python
 from devconfig_gen import load_file, loads, dumps
 
-data = load_file("examples/service.yaml")
+data = load_file("examples/custom.yaml")
 text = dumps(data, "json")
 ```
 
@@ -238,19 +265,19 @@ text = dumps(data, "json")
 ```python
 from devconfig_gen import diagnose_request, describe_provider
 
-for d in diagnose_request("service", context={"port": 99999}):
+for d in diagnose_request("env", context={}):
     print(d.field, "->", d.message, f"({d.severity})")
 
-for step in describe_provider("service"):
+for step in describe_provider("custom"):
     print(step.id, step.title, [f.name for f in step.fields])
 ```
 
 ## 示例输入 / Example input
 
-`examples/service.yaml`:
+`examples/custom.yaml`:
 
 ```yaml
-service:
+app:
   name: checkout-api
   version: "2.4.0"
   port: 8080
@@ -265,7 +292,7 @@ service:
     timeout_seconds: 5
 ```
 
-`examples/service.json` 是等效 JSON 文档 / is the equivalent JSON document.
+`examples/custom.json` 是等效 JSON 文档 / is the equivalent JSON document.
 
 ## JSON/YAML 支持与限制 / Support and limitations
 
@@ -320,7 +347,7 @@ CLI、Python API、向导、工作台调用相同的 engine 函数 / CLI, API, w
 | `models` | 请求、产物、诊断、字段、步骤、Provider 协议 |
 | `registry` | ProviderRegistry 及内置 Provider |
 | `engine` | 编排、诊断、Schema、持久化 / orchestration, diagnostics, persistence |
-| `providers` | `json`、`service`、`env` Provider |
+| `providers` | `custom`、`json`、`env` Provider |
 | `interactive` | `init` 终端向导（延迟加载）/ terminal wizard (lazy-loaded) |
 | `web_ui` | `ui` 本地工作台（延迟加载）/ local studio (lazy-loaded) |
 | `cli` | 仅参数解析 / argument parsing only |
@@ -386,9 +413,9 @@ class GreetingProvider:
 
 ```python
 from devconfig_gen import GenerationRequest, ProviderRegistry, generate
-from devconfig_gen.providers import JsonProvider, ServiceProvider
+from devconfig_gen.providers import CustomProvider, JsonProvider
 
-registry = ProviderRegistry((JsonProvider(), ServiceProvider(), GreetingProvider()))
+registry = ProviderRegistry((CustomProvider(), JsonProvider(), GreetingProvider()))
 result = generate("greeting", GenerationRequest(context={"who": "world"}), registry=registry)
 ```
 

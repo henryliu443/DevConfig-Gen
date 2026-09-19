@@ -21,9 +21,9 @@ class TestValidationHelpers(unittest.TestCase):
     def test_expect_integer_range_message(self):
         errors = []
         self.assertIsNone(
-            validation.expect_integer(99999, "service.port", errors, minimum=1, maximum=65535)
+            validation.expect_integer(99999, "app.port", errors, minimum=1, maximum=65535)
         )
-        self.assertEqual(errors[0].field, "service.port")
+        self.assertEqual(errors[0].field, "app.port")
         self.assertEqual(errors[0].message, "port must be between 1 and 65535, got 99999")
         self.assertEqual(errors[0].severity, "error")
 
@@ -41,14 +41,14 @@ class TestValidationHelpers(unittest.TestCase):
         errors = []
         self.assertEqual(
             validation.expect_enum(
-                "Production", "service.environment", errors, allowed=("development", "production")
+                "Production", "app.environment", errors, allowed=("development", "production")
             ),
             "production",
         )
         self.assertEqual(errors, [])
         self.assertIsNone(
             validation.expect_enum(
-                "prod", "service.environment", errors, allowed=("development", "production")
+                "prod", "app.environment", errors, allowed=("development", "production")
             )
         )
         self.assertEqual(
@@ -59,15 +59,15 @@ class TestValidationHelpers(unittest.TestCase):
     def test_expect_string_mapping_normalizes_values(self):
         errors = []
         result = validation.expect_string_mapping(
-            {"team": "platform", "count": 3, "empty": None}, "service.labels", errors
+            {"team": "platform", "count": 3, "empty": None}, "app.labels", errors
         )
         self.assertEqual(result, {"team": "platform", "count": "3", "empty": ""})
         self.assertEqual(errors, [])
 
     def test_expect_string_mapping_rejects_nested_values(self):
         errors = []
-        validation.expect_string_mapping({"bad": {"x": 1}}, "service.labels", errors)
-        self.assertEqual(errors[0].field, "service.labels.bad")
+        validation.expect_string_mapping({"bad": {"x": 1}}, "app.labels", errors)
+        self.assertEqual(errors[0].field, "app.labels.bad")
         self.assertEqual(
             errors[0].message, "labels.bad must be a scalar value, got dict {'x': 1}"
         )
@@ -85,12 +85,12 @@ class TestValidationHelpers(unittest.TestCase):
         self.assertEqual(error.diagnostics[0].field, "")
 
     def test_diagnostic_renders_and_serializes(self):
-        diagnostic = Diagnostic("service.port", "port must be between 1 and 65535, got 99999")
+        diagnostic = Diagnostic("app.port", "port must be between 1 and 65535, got 99999")
         self.assertEqual(str(diagnostic), diagnostic.message)
         self.assertEqual(
             diagnostic.as_dict(),
             {
-                "field": "service.port",
+                "field": "app.port",
                 "message": "port must be between 1 and 65535, got 99999",
                 "severity": "error",
             },

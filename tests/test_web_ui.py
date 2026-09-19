@@ -13,7 +13,7 @@ from devconfig_gen.web_ui import WebUIRequestHandler
 
 from _support import EXAMPLES
 
-SAMPLE_YAML = EXAMPLES / "service.yaml"
+SAMPLE_YAML = EXAMPLES / "custom.yaml"
 
 
 class TestWebUI(unittest.TestCase):
@@ -61,22 +61,49 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("DevConfig-Gen", body)
         self.assertIn("Live Generated Configuration", body)
+        self.assertIn("fmtXml", body)
+        self.assertIn("doc-dropzone", body)
+        self.assertIn("doc-editor-textarea", body)
+        self.assertIn("btnClearAll", body)
+        self.assertIn("renderTreeEditor", body)
+        self.assertIn("tree-children", body)
+        self.assertIn("tree-bulk", body)
+        self.assertIn("treeBulkAdd", body)
+
+    def test_index_is_not_cached(self):
+        with urllib.request.urlopen(self._url("/")) as resp:
+            cache = resp.headers.get("Cache-Control", "")
+        self.assertIn("no-store", cache)
+
+    def test_get_api_providers_includes_custom(self):
+        status, body = self._get("/api/providers")
+        self.assertEqual(status, 200)
+        data = json.loads(body)
+        self.assertIn("custom", data["providers"])
+
+    def test_get_api_schema_custom_uses_tree_field(self):
+        status, body = self._get("/api/schema?provider=custom")
+        self.assertEqual(status, 200)
+        steps = json.loads(body)
+        self.assertEqual(steps[0]["fields"][0]["type"], "tree")
 
     def test_get_api_providers(self):
         status, body = self._get("/api/providers")
         self.assertEqual(status, 200)
         data = json.loads(body)
-        self.assertIn("service", data["providers"])
+        self.assertIn("custom", data["providers"])
+        self.assertIn("json", data["providers"])
+        self.assertIn("env", data["providers"])
 
     def test_get_api_schema(self):
-        status, body = self._get("/api/schema?provider=service")
+        status, body = self._get("/api/schema?provider=custom")
         self.assertEqual(status, 200)
         steps = json.loads(body)
-        self.assertGreaterEqual(len(steps), 3)
-        self.assertEqual(steps[0]["id"], "identity")
+        self.assertGreaterEqual(len(steps), 1)
+        self.assertEqual(steps[0]["id"], "document")
 
     def test_get_api_schema_includes_i18n(self):
-        status, body = self._get("/api/schema?provider=service")
+        status, body = self._get("/api/schema?provider=custom")
         self.assertEqual(status, 200)
         steps = json.loads(body)
         self.assertIn("zh", steps[0]["i18n"])
@@ -92,14 +119,14 @@ class TestWebUI(unittest.TestCase):
             ctx.exception.close()
 
     def test_post_api_validate(self):
-        status, res = self._post("/api/validate", {"provider": "service", "context": {}})
+        status, res = self._post("/api/validate", {"provider": "env", "context": {}})
         self.assertEqual(status, 200)
         self.assertFalse(res["valid"])
         self.assertGreater(len(res["diagnostics"]), 0)
 
         status, res = self._post(
             "/api/validate",
-            {"provider": "service", "context": {"service": {"name": "test-svc", "port": 8080}}},
+            {"provider": "custom", "context": {"document": {"app": {"name": "test-svc"}}}},
         )
         self.assertEqual(status, 200)
         self.assertTrue(res["valid"])
@@ -114,19 +141,19 @@ class TestWebUI(unittest.TestCase):
         status, res = self._post(
             "/api/generate",
             {
-                "provider": "service",
-                "context": {"service": {"name": "test-svc", "port": 8080}},
+                "provider": "custom",
+                "context": {"document": {"app": {"name": "test-svc", "port": 8080}}},
                 "format": "yaml",
             },
         )
         self.assertEqual(status, 200)
         artifact = res["artifacts"][0]
-        self.assertEqual(artifact["name"], "service.yaml")
+        self.assertEqual(artifact["name"], "custom.yaml")
         self.assertIn("name: test-svc", artifact["content"])
 
     def test_post_api_generate_invalid_returns_400(self):
         status, res = self._post(
-            "/api/generate", {"provider": "service", "context": {}, "format": "yaml"}
+            "/api/generate", {"provider": "env", "context": {}, "format": "yaml"}
         )
         self.assertEqual(status, 400)
         self.assertIn("error", res)
@@ -135,35 +162,35 @@ class TestWebUI(unittest.TestCase):
         context = load_file(SAMPLE_YAML)
         with tempfile.TemporaryDirectory() as directory:
             generate_from_file(
-                "service", str(SAMPLE_YAML), output_dir=directory, output_format="yaml"
+                "custom", str(SAMPLE_YAML), output_dir=directory, output_format="yaml"
             )
-            expected = (Path(directory) / "service.yaml").read_text(encoding="utf-8")
+            expected = (Path(directory) / "custom.yaml").read_text(encoding="utf-8")
 
         status, res = self._post(
-            "/api/generate", {"provider": "service", "context": context, "format": "yaml"}
+            "/api/generate", {"provider": "custom", "context": context, "format": "yaml"}
         )
         self.assertEqual(status, 200)
         self.assertEqual(res["artifacts"][0]["content"], expected)
 
     def test_post_api_export(self):
         payload = {
-            "provider": "service",
-            "context": {"service": {"name": "export-svc", "port": 3000}},
+            "provider": "custom",
+            "context": {"document": {"app": {"name": "export-svc", "port": 3000}}},
             "format": "json",
             "output_dir": ".",
         }
         status, res = self._post("/api/export", payload)
         self.assertEqual(status, 200)
         self.assertTrue(res["success"])
-        saved_file = self.workspace / "service.json"
+        saved_file = self.workspace / "custom.json"
         self.assertTrue(saved_file.exists())
         data = json.loads(saved_file.read_text(encoding="utf-8"))
-        self.assertEqual(data["service"]["name"], "export-svc")
+        self.assertEqual(data["app"]["name"], "export-svc")
 
     def test_post_api_export_rejects_path_escape(self):
         payload = {
-            "provider": "service",
-            "context": {"service": {"name": "escape-svc", "port": 3000}},
+            "provider": "custom",
+            "context": {"document": {"app": {"name": "escape-svc", "port": 3000}}},
             "format": "json",
             "output_dir": "../outside",
         }
@@ -182,10 +209,10 @@ class TestWebUI(unittest.TestCase):
 
     def test_post_api_parse(self):
         status, res = self._post(
-            "/api/parse", {"content": "service:\n  name: parsed-svc\n  port: 8080\n"}
+            "/api/parse", {"content": "app:\n  name: parsed-svc\n  port: 8080\n"}
         )
         self.assertEqual(status, 200)
-        self.assertEqual(res["context"]["service"]["name"], "parsed-svc")
+        self.assertEqual(res["context"]["app"]["name"], "parsed-svc")
 
     def test_post_api_parse_invalid_returns_400(self):
         status, res = self._post("/api/parse", {"content": "{not valid"})

@@ -26,7 +26,7 @@ class _EndOfInput(Exception):
 
 
 def _set_dotted_path(target: Dict[str, Any], path: str, value: Any) -> None:
-    """Set a value in a nested dict using a dotted path like 'service.port'."""
+    """Set a value in a nested dict using a dotted path like 'app.port'."""
 
     parts = path.split(".")
     current = target
@@ -208,6 +208,30 @@ def _prompt_mapping(
     return mapping
 
 
+def _prompt_document(
+    field: ProviderField,
+    current_value: Any,
+    reader: TextIO,
+    writer: TextIO,
+) -> Any:
+    writer.write(f"? {field.name} (load document file or enter entries):\n")
+    path_str = _read_line(
+        reader, writer, "    Path to JSON/YAML file (or press enter for key=value input): "
+    )
+    if path_str:
+        file_path = Path(path_str).expanduser()
+        if file_path.is_file():
+            try:
+                loaded = formats.load_file(file_path)
+                writer.write(f"    [✓] Loaded document from {file_path}\n")
+                return loaded
+            except Exception as exc:
+                writer.write(f"    [!] Error reading {file_path}: {exc}\n")
+        else:
+            writer.write(f"    [!] File not found: {path_str}\n")
+    return _prompt_mapping(field, current_value, reader, writer)
+
+
 def prompt_field(
     field: ProviderField,
     current_value: Any,
@@ -222,6 +246,8 @@ def prompt_field(
         return _prompt_boolean(field, current_value, reader, writer)
     if field.type in ("mapping", "dict"):
         return _prompt_mapping(field, current_value, reader, writer)
+    if field.type in ("document", "tree"):
+        return _prompt_document(field, current_value, reader, writer)
     return _prompt_string(field, current_value, reader, writer)
 
 

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to release (e.g. v0.3.0)"
+        description: "Tag to release (e.g. v1.0.0)"
         required: true
 
 permissions:
@@ -33,8 +33,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install build tool
-        run: python -m pip install build
+      - name: Install build tools
+        run: python -m pip install build twine
 
       - name: Build sdist and wheel
         run: python -m build
@@ -47,3 +47,9 @@ jobs:
             dist/* \
             --title "${{ steps.tag.outputs.version }}" \
             --generate-notes
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*

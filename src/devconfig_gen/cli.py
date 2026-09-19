@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="devconfig-gen",
         description="Generate and validate structured JSON/YAML configuration.",
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.3.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
     sub = parser.add_subparsers(dest="command", required=True)
 
     providers = sub.add_parser("providers", help="List available providers")
@@ -41,7 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         dest="overrides",
         metavar="KEY=VALUE",
-        help="Override a value by dotted path, e.g. service.port=9090 (repeatable)",
+        help="Override a value by dotted path, e.g. app.port=9090 (repeatable)",
     )
     generate_cmd.set_defaults(handler=_generate)
 
@@ -79,7 +79,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run interactive terminal wizard to create configuration",
         description="Run interactive terminal wizard to create configuration.",
     )
-    init_cmd.add_argument("--provider", default="service", help="Provider name (default: service)")
+    init_cmd.add_argument("--provider", default="custom", help="Provider name (default: custom)")
     init_cmd.add_argument("--input", type=Path, help="Optional existing config file to pre-fill wizard")
     init_cmd.add_argument("--output-dir", default=".", type=Path, help="Directory for generated artifact")
     init_cmd.add_argument("--format", choices=("json", "yaml"), help="Output format override")
