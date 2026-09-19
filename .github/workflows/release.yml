@@ -44,11 +44,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh release delete "${{ steps.tag.outputs.version }}" --yes --cleanup-tag || true
           gh release create "${{ steps.tag.outputs.version }}" \
             dist/* \
             --title "${{ steps.tag.outputs.version }}" \
-            --generate-notes \
-            --clobber
+            --generate-notes
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
