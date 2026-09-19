@@ -67,7 +67,7 @@ __all__ = [
     "run_web_ui",
     "validate_request",
 ]
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 
 _LAZY_EXPORTS = {
     "run_interactive_wizard": ("interactive", "run_interactive_wizard"),

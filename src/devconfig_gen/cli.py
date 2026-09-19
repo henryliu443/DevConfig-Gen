@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import formats
+from . import __version__, formats
 from .engine import describe_provider, diagnose_request, generate_pipeline
 from .registry import default_registry
 
@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="devconfig-gen",
         description="Generate and validate structured JSON/YAML configuration.",
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     providers = sub.add_parser("providers", help="List available providers")
