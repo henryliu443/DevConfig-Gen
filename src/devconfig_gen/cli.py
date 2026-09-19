@@ -25,16 +25,44 @@ def build_parser() -> argparse.ArgumentParser:
 
     generate_cmd = sub.add_parser("generate", help="Generate configuration from structured input")
     generate_cmd.add_argument("--provider", default="json", help="Provider name (default: json)")
-    generate_cmd.add_argument("--input", required=True, type=Path, help="JSON or YAML input file")
+    generate_cmd.add_argument(
+        "--input",
+        required=True,
+        action="append",
+        type=Path,
+        help="JSON or YAML input file (repeatable; merged left to right)",
+    )
     generate_cmd.add_argument("--output-dir", required=True, type=Path, help="Directory for artifacts")
     generate_cmd.add_argument("--format", choices=("json", "yaml"), help="Output format")
     generate_cmd.add_argument("--name", help="Output file name (default: provider-specific)")
+    generate_cmd.add_argument(
+        "--set",
+        action="append",
+        default=[],
+        dest="overrides",
+        metavar="KEY=VALUE",
+        help="Override a value by dotted path, e.g. service.port=9090 (repeatable)",
+    )
     generate_cmd.set_defaults(handler=_generate)
 
     validate_cmd = sub.add_parser("validate", help="Validate input without generating output")
     validate_cmd.add_argument("--provider", default="json", help="Provider name (default: json)")
-    validate_cmd.add_argument("--input", required=True, type=Path, help="JSON or YAML input file")
+    validate_cmd.add_argument(
+        "--input",
+        required=True,
+        action="append",
+        type=Path,
+        help="JSON or YAML input file (repeatable; merged left to right)",
+    )
     validate_cmd.add_argument("--format", choices=("json", "yaml"), help="Input format override")
+    validate_cmd.add_argument(
+        "--set",
+        action="append",
+        default=[],
+        dest="overrides",
+        metavar="KEY=VALUE",
+        help="Override a value by dotted path before validating (repeatable)",
+    )
     validate_cmd.add_argument(
         "--json", action="store_true", help="Print structured diagnostics as JSON"
     )
@@ -81,15 +109,30 @@ def _list_providers(args) -> int:
     return 0
 
 
+def _parse_overrides(pairs) -> dict:
+    overrides = {}
+    for item in pairs or ():
+        if "=" not in item:
+            raise ValueError(f"--set expects KEY=VALUE, got {item!r}")
+        key, value = item.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"--set expects a non-empty key, got {item!r}")
+        overrides[key] = formats.coerce_scalar(value)
+    return overrides
+
+
 def _generate(args) -> int:
     options = {"name": args.name} if args.name else None
     try:
+        overrides = _parse_overrides(args.overrides)
         result = generate_pipeline(
             args.provider,
-            input_path=str(args.input),
+            input_path=[str(path) for path in args.input],
             output_dir=str(args.output_dir),
             output_format=args.format,
             options=options,
+            overrides=overrides,
         )
     except (OSError, formats.FormatError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -101,10 +144,12 @@ def _generate(args) -> int:
 
 def _validate(args) -> int:
     try:
+        overrides = _parse_overrides(args.overrides)
         diagnostics = diagnose_request(
             args.provider,
-            input_path=str(args.input),
+            input_path=[str(path) for path in args.input],
             input_format=args.format,
+            overrides=overrides,
         )
     except (OSError, formats.FormatError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -120,7 +165,8 @@ def _validate(args) -> int:
                 print(f"invalid: {item.message}", file=sys.stderr)
         return 1
     if not args.json:
-        print(f"{args.input}: valid")
+        sources = ", ".join(str(path) for path in args.input)
+        print(f"{sources}: valid")
     return 0
 
 

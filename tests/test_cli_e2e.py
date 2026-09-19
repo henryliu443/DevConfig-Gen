@@ -156,6 +156,126 @@ class TestCliEndToEnd(unittest.TestCase):
         self.assertIn("Launch local configuration studio WebUI", result.stdout)
         self.assertIn("--workspace", result.stdout)
 
+    def test_generate_multi_input_with_set_overrides(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory) / "base.yaml"
+            override = Path(directory) / "prod.json"
+            base.write_text(
+                "service:\n  name: web\n  port: 80\n  labels:\n    team: core\n",
+                encoding="utf-8",
+            )
+            override.write_text(
+                json.dumps({"service": {"port": 9090, "labels": {"tier": "edge"}}}),
+                encoding="utf-8",
+            )
+            out = Path(directory) / "out"
+            result = run_cli(
+                "generate",
+                "--provider",
+                "service",
+                "--input",
+                str(base),
+                "--input",
+                str(override),
+                "--set",
+                "service.environment=production",
+                "--output-dir",
+                str(out),
+                "--format",
+                "json",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            data = json.loads((out / "service.json").read_text(encoding="utf-8"))
+            self.assertEqual(data["service"]["port"], 9090)
+            self.assertEqual(data["service"]["environment"], "production")
+            self.assertEqual(data["service"]["labels"], {"team": "core", "tier": "edge"})
+
+    def test_generate_rejects_malformed_set(self):
+        result = run_cli(
+            "generate",
+            "--provider",
+            "service",
+            "--input",
+            SAMPLE_JSON,
+            "--set",
+            "noequals",
+            "--output-dir",
+            "out",
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("KEY=VALUE", result.stderr)
+
+    def test_set_coerces_json_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory) / "base.json"
+            base.write_text('{"a": 1}', encoding="utf-8")
+            out = Path(directory) / "out"
+            result = run_cli(
+                "generate",
+                "--provider",
+                "json",
+                "--input",
+                str(base),
+                "--set",
+                "flag=true",
+                "--set",
+                "count=42",
+                "--set",
+                "nothing=null",
+                "--set",
+                "label=web",
+                "--output-dir",
+                str(out),
+                "--format",
+                "json",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            data = json.loads((out / "config.json").read_text(encoding="utf-8"))
+            self.assertIs(data["flag"], True)
+            self.assertEqual(data["count"], 42)
+            self.assertIsNone(data["nothing"])
+            self.assertEqual(data["label"], "web")
+
+    def test_validate_multi_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory) / "base.yaml"
+            override = Path(directory) / "override.yaml"
+            base.write_text("service:\n  name: web\n  port: 80\n", encoding="utf-8")
+            override.write_text("service:\n  port: 9090\n", encoding="utf-8")
+            result = run_cli(
+                "validate",
+                "--provider",
+                "service",
+                "--input",
+                str(base),
+                "--input",
+                str(override),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("valid", result.stdout)
+
+    def test_generate_env_provider_end_to_end(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "vars.yaml"
+            source.write_text(
+                "database:\n  host: localhost\n  port: 5432\ndebug: true\n",
+                encoding="utf-8",
+            )
+            out = Path(directory) / "out"
+            result = run_cli(
+                "generate",
+                "--provider",
+                "env",
+                "--input",
+                str(source),
+                "--output-dir",
+                str(out),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            content = (out / ".env").read_text(encoding="utf-8")
+            self.assertIn("DATABASE_HOST=localhost", content)
+            self.assertIn("DEBUG=true", content)
+
 
 if __name__ == "__main__":
     unittest.main()
