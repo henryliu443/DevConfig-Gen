@@ -7,7 +7,7 @@ pipeline as richer providers.
 
 from __future__ import annotations
 
-from typing import Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 from .. import formats
 from ..models import (
@@ -27,16 +27,16 @@ class JsonProvider:
         ProviderStep(
             id="document",
             title="Document",
-            description="An arbitrary JSON/YAML document passed through unchanged.",
-            i18n={"zh": {"title": "文档", "description": "任意 JSON/YAML 文档，原样透传。"}},
+            description="Upload, paste, or edit an arbitrary JSON/YAML document to pass through unchanged.",
+            i18n={"zh": {"title": "文档", "description": "支持上传文件或直接粘贴/编辑任意 JSON/YAML 文档，原样透传与格式转换。"}},
             fields=(
                 ProviderField(
                     "document",
-                    type="mapping",
+                    type="document",
                     required=True,
-                    title="Document",
-                    description="Root mapping of the input document.",
-                    i18n={"zh": {"title": "文档", "description": "输入文档的根映射。"}},
+                    title="Document Content",
+                    description="Upload a JSON/YAML file or paste/edit document content directly.",
+                    i18n={"zh": {"title": "文档内容", "description": "支持直接上传 JSON/YAML 文件，或直接粘贴/编辑文档内容。"}},
                 ),
             ),
         ),
@@ -45,8 +45,18 @@ class JsonProvider:
     def describe_schema(self) -> Sequence[ProviderStep]:
         return self.steps
 
+    def _unwrap_context(self, context: Any) -> Any:
+        if (
+            isinstance(context, Mapping)
+            and set(context.keys()) == {"document"}
+            and isinstance(context["document"], Mapping)
+        ):
+            return context["document"]
+        return context
+
     def validate(self, request: GenerationRequest):
-        if not isinstance(request.context, Mapping):
+        context = self._unwrap_context(request.context)
+        if not isinstance(context, Mapping):
             return ("document: expected a mapping at the root",)
         return ()
 
@@ -61,12 +71,13 @@ class JsonProvider:
         )
         suffix = "yaml" if fmt == formats.YAML else "json"
         filename = request.options.get("name") or f"config.{suffix}"
+        context = self._unwrap_context(request.context)
         return GenerationResult(
             provider=self.name,
             artifacts=(
                 GeneratedArtifact(
                     name=str(filename),
-                    content=dict(request.context),
+                    content=dict(context),
                     media_type=formats.media_type_for(fmt),
                 ),
             ),

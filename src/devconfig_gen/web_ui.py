@@ -330,8 +330,210 @@ _HTML_PAGE = """<!DOCTYPE html>
       font-weight: 600;
       border-radius: 4px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
     }
     .format-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .format-btn.reserved {
+      opacity: 0.7;
+    }
+    .format-btn.reserved:hover {
+      opacity: 0.95;
+    }
+    .format-badge {
+      font-size: 0.6rem;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(128, 128, 128, 0.2);
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    /* Document Upload & Raw Editor */
+    .doc-editor-card {
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+      background: var(--card-bg);
+    }
+    .doc-dropzone {
+      border: 2px dashed var(--card-border);
+      border-radius: 8px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(128, 128, 128, 0.03);
+      transition: all 0.2s ease;
+      margin-bottom: 0.75rem;
+    }
+    .doc-dropzone:hover, .doc-dropzone.drag-over {
+      border-color: var(--primary);
+      background: rgba(0, 113, 227, 0.06);
+    }
+    .doc-dropzone-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .doc-dropzone-text {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .doc-dropzone-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+    .doc-editor-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0.75rem;
+      background: var(--input-bg);
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.75rem;
+    }
+    .doc-editor-toolbar-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .doc-editor-textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border: none;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+      display: block;
+    }
+
+    /* Recursive Tree Editor */
+    .tree-root {
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      background: var(--card-bg);
+      overflow-x: auto;
+    }
+    .tree-children {
+      border-left: 2px solid var(--card-border);
+      margin-left: 0.35rem;
+      padding-left: 0.5rem;
+      margin-top: 0.3rem;
+    }
+    .tree-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+    }
+    .tree-row > .tree-node {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .tree-row input.tree-key {
+      flex: 0 0 8rem;
+      width: 8rem;
+      min-width: 6rem;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.8rem;
+    }
+    .tree-type {
+      flex: 0 0 auto;
+      width: auto;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.75rem;
+    }
+    .tree-row input.tree-value {
+      flex: 1 1 6rem;
+      min-width: 5rem;
+      width: auto;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.8rem;
+    }
+    .tree-btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.72rem;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      background: var(--input-bg);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tree-btn.remove {
+      color: var(--danger);
+    }
+    .tree-btn.add {
+      color: var(--primary);
+    }
+    .tree-btn.nest {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .tree-bulk {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.3rem;
+      align-items: center;
+    }
+    .tree-bulk input {
+      flex: 1 1 auto;
+      min-width: 8rem;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.78rem;
+    }
+    .tree-bulk .tree-btn {
+      flex: 0 0 auto;
+    }
+    .tree-null {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 0.35rem 0;
+    }
+    .tree-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+    .tree-toolbar-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .editor-mode-toggle {
+      display: inline-flex;
+      gap: 2px;
+      padding: 2px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+    }
+    .mode-btn {
+      padding: 0.25rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .mode-btn.active {
       background: var(--primary);
       color: #fff;
     }
@@ -403,8 +605,9 @@ _HTML_PAGE = """<!DOCTYPE html>
     </div>
     <div class="header-controls">
       <select id="providerSelect" style="width: auto; padding: 0.4rem 0.8rem;">
-        <option value="service">Provider: service</option>
+        <option value="custom">Provider: custom</option>
       </select>
+      <button class="btn btn-secondary" id="btnClearAll" data-i18n="clearAll">🧹 全部清空</button>
       <button class="btn btn-secondary" id="btnUploadConfig" data-i18n="importFile">⬆️ 导入文件</button>
       <input type="file" id="fileInput" style="display: none;" accept=".json,.yaml,.yml">
       <button class="btn btn-secondary" id="btnPreset" data-i18n="loadPreset">✨ 加载预设</button>
@@ -440,6 +643,7 @@ _HTML_PAGE = """<!DOCTYPE html>
           <div class="format-toggle">
             <button class="format-btn active" id="fmtYaml" onclick="setFormat('yaml')">YAML</button>
             <button class="format-btn" id="fmtJson" onclick="setFormat('json')">JSON</button>
+            <button class="format-btn reserved" id="fmtXml" onclick="setFormat('xml')" title="XML 格式开关预留（即将支持）/ Reserved XML switch">XML <span class="format-badge">soon</span></button>
           </div>
           <button class="btn btn-secondary" id="btnCopy" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" data-i18n="copy">📋 复制</button>
         </div>
@@ -464,7 +668,7 @@ _HTML_PAGE = """<!DOCTYPE html>
         issues: (n) => `${n} 个校验问题`,
         allDone: "✓ 全部步骤完成！可以保存或复制。",
         copied: "📋 已复制配置到剪贴板！",
-        presetLoaded: "✨ 已加载生产环境预设！",
+        presetLoaded: "✨ 已加载预设！",
         saved: (f) => `💾 已保存: ${f}`,
         saveFail: (e) => `保存失败: ${e}`,
         exportErr: (e) => `导出错误: ${e}`,
@@ -478,6 +682,31 @@ _HTML_PAGE = """<!DOCTYPE html>
         key: "键", value: "值",
         generating: "# 生成预览中...",
         validationError: "# 校验错误:\\n# ",
+        xmlSoon: "XML 格式开关已预留，后续版本即将接入！",
+        uploadOrDrop: "点击或拖拽 JSON / YAML 文件到此处上传",
+        dropHint: "支持 .json, .yaml, .yml 格式文档，自动反向解析填充",
+        docEditor: "文档编辑器 (JSON / YAML)",
+        sampleDoc: "✨ 载入示例",
+        formatDoc: "格式化",
+        clearDoc: "清空",
+        clearAll: "🧹 全部清空",
+        clearAllDone: "🧹 已清空全部内容。",
+        treeEmpty: "暂无字段，点击下方按钮添加。",
+        treeAddField: "+ 添加字段",
+        treeAddItem: "+ 添加项",
+        treeRemove: "删除",
+        treeNest: "往里",
+        treeNestHint: "用 { } 包起来，里面可以继续嵌套",
+        treeBulkAdd: "批量添加",
+        treeBulkObj: "批量：a, b, c 或 a=1, b=2, …（逗号分隔，一次可加很多）",
+        treeBulkArr: "批量：1, 2, 3, …（逗号分隔，一次可加很多）",
+        treeRoot: "根节点",
+        treeKey: "键名",
+        treeType: "类型",
+        modeTree: "结构模式",
+        modeText: "文本模式",
+        textHint: '直接输入 JSON 或 YAML：列表 [1,2,3,4,5]、嵌套 {"1":{"2":{}}}、混合都行。',
+        textParseError: "解析失败",
       },
       en: {
         studio: "Studio", importFile: "⬆️ Import File", loadPreset: "✨ Load Preset",
@@ -487,7 +716,7 @@ _HTML_PAGE = """<!DOCTYPE html>
         issues: (n) => `${n} validation ${n === 1 ? 'issue' : 'issues'}`,
         allDone: "✓ All steps completed! Ready to save or copy.",
         copied: "📋 Copied configuration to clipboard!",
-        presetLoaded: "✨ Loaded production service preset!",
+        presetLoaded: "✨ Loaded preset!",
         saved: (f) => `💾 Saved: ${f}`,
         saveFail: (e) => `Save failed: ${e}`,
         exportErr: (e) => `Export error: ${e}`,
@@ -501,6 +730,31 @@ _HTML_PAGE = """<!DOCTYPE html>
         key: "Key", value: "Value",
         generating: "# Generating preview...",
         validationError: "# Validation Error:\\n# ",
+        xmlSoon: "XML format switch is reserved and will be supported in an upcoming release!",
+        uploadOrDrop: "Click or drag & drop a JSON / YAML file here to upload",
+        dropHint: "Supports .json, .yaml, .yml documents with auto-parsing",
+        docEditor: "Document Editor (JSON / YAML)",
+        sampleDoc: "✨ Sample",
+        formatDoc: "Format",
+        clearDoc: "Clear",
+        clearAll: "🧹 Clear All",
+        clearAllDone: "🧹 Cleared all content.",
+        treeEmpty: "No fields yet. Use the button below to add one.",
+        treeAddField: "+ Add field",
+        treeAddItem: "+ Add item",
+        treeRemove: "Remove",
+        treeNest: "Nest",
+        treeNestHint: "Wrap in { }; you can keep nesting inside",
+        treeBulkAdd: "Add all",
+        treeBulkObj: "Bulk: a, b, c or a=1, b=2, … (comma-separated, many at once)",
+        treeBulkArr: "Bulk: 1, 2, 3, … (comma-separated, many at once)",
+        treeRoot: "Root",
+        treeKey: "Key",
+        treeType: "Type",
+        modeTree: "Tree mode",
+        modeText: "Text mode",
+        textHint: 'Type JSON or YAML directly: lists [1,2,3,4,5], nesting {"1":{"2":{}}}, or anything mixed.',
+        textParseError: "Parse failed",
       }
     };
     let currentLang = localStorage.getItem("dcg_lang") || "zh";
@@ -541,7 +795,7 @@ _HTML_PAGE = """<!DOCTYPE html>
     }
 
     // ── Core State ────────────────────────────────────────
-    let currentProvider = "service";
+    let currentProvider = "custom";
     let schemaSteps = [];
     let activeStepIdx = 0;
     let formData = {};
@@ -589,7 +843,384 @@ _HTML_PAGE = """<!DOCTYPE html>
       return cur !== undefined ? cur : def;
     }
 
-    // Fetch Providers & Schema
+    // ── Recursive tree editor ─────────────────────────────
+    const TREE_TYPES = ["string", "number", "boolean", "object", "array", "null"];
+
+    function valueType(v) {
+      if (v === null) return "null";
+      if (Array.isArray(v)) return "array";
+      if (typeof v === "object") return "object";
+      if (typeof v === "boolean") return "boolean";
+      if (typeof v === "number") return "number";
+      return "string";
+    }
+
+    function defaultForType(type) {
+      if (type === "number") return 0;
+      if (type === "boolean") return false;
+      if (type === "null") return null;
+      if (type === "object") return {};
+      if (type === "array") return [];
+      return "";
+    }
+
+    // Interpret a typed token as number/boolean/null when it clearly is one.
+    function coerceToken(text) {
+      const s = String(text).trim();
+      if (s === "true") return true;
+      if (s === "false") return false;
+      if (s === "null") return null;
+      if (s !== "" && !isNaN(Number(s))) return Number(s);
+      return s;
+    }
+
+    // Build an editor for one value. onChange(newValue) is called on every edit.
+    function buildValueEditor(value, onChange, depth) {
+      const wrap = document.createElement("div");
+      wrap.className = "tree-node";
+      const type = valueType(value);
+
+      const head = document.createElement("div");
+      head.className = "tree-row";
+
+      const typeSel = document.createElement("select");
+      typeSel.className = "tree-type";
+      TREE_TYPES.forEach(tt => {
+        const o = document.createElement("option");
+        o.value = tt;
+        o.textContent = tt;
+        if (tt === type) o.selected = true;
+        typeSel.appendChild(o);
+      });
+      typeSel.onchange = () => onChange(defaultForType(typeSel.value), true);
+      head.appendChild(typeSel);
+
+      if (type === "string" || type === "number") {
+        const inp = document.createElement("input");
+        inp.type = type === "number" ? "number" : "text";
+        inp.className = "tree-value";
+        inp.value = value === null || value === undefined ? "" : value;
+        inp.oninput = () => {
+          if (type === "number") {
+            onChange(inp.value === "" ? 0 : Number(inp.value), false);
+          } else {
+            onChange(inp.value, false);
+          }
+        };
+        head.appendChild(inp);
+      } else if (type === "boolean") {
+        const inp = document.createElement("input");
+        inp.type = "checkbox";
+        inp.checked = !!value;
+        inp.onchange = () => onChange(inp.checked, false);
+        head.appendChild(inp);
+      } else if (type === "null") {
+        const span = document.createElement("span");
+        span.className = "tree-null";
+        span.textContent = "null";
+        head.appendChild(span);
+      }
+      wrap.appendChild(head);
+
+      if (type === "object") {
+        wrap.appendChild(buildContainerEditor(value, onChange, depth, false));
+      } else if (type === "array") {
+        wrap.appendChild(buildContainerEditor(value, onChange, depth, true));
+      }
+      return wrap;
+    }
+
+    function buildContainerEditor(obj, onChange, depth, isArray) {
+      const box = document.createElement("div");
+      box.className = "tree-children";
+
+      const keys = isArray ? obj.map((_, i) => String(i)) : Object.keys(obj);
+      if (keys.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "tree-null";
+        empty.textContent = t("treeEmpty");
+        box.appendChild(empty);
+      }
+
+      keys.forEach(k => {
+        const row = document.createElement("div");
+        row.className = "tree-row";
+
+        if (!isArray) {
+          const keyInp = document.createElement("input");
+          keyInp.type = "text";
+          keyInp.className = "tree-key";
+          keyInp.placeholder = t("treeKey");
+          keyInp.value = k;
+          keyInp.onchange = () => {
+            const newKey = keyInp.value.trim();
+            if (!newKey || newKey === k) { keyInp.value = k; return; }
+            const next = {};
+            Object.keys(obj).forEach(kk => {
+              if (kk === k) next[newKey] = obj[k];
+              else next[kk] = obj[kk];
+            });
+            onChange(next, true);
+          };
+          row.appendChild(keyInp);
+        } else {
+          const idx = document.createElement("span");
+          idx.className = "tree-null";
+          idx.style.flex = "0 0 auto";
+          idx.textContent = `[${k}]`;
+          row.appendChild(idx);
+        }
+
+        const childEditor = buildValueEditor(
+          isArray ? obj[Number(k)] : obj[k],
+          (nv, structural) => {
+            if (structural) {
+              if (isArray) {
+                const arr = obj.slice();
+                arr[Number(k)] = nv;
+                onChange(arr, true);
+              } else {
+                const next = Object.assign({}, obj);
+                next[k] = nv;
+                onChange(next, true);
+              }
+            } else {
+              if (isArray) obj[Number(k)] = nv;
+              else obj[k] = nv;
+              onChange(obj, false);
+            }
+          },
+          depth + 1
+        );
+        row.appendChild(childEditor);
+
+        const nest = document.createElement("button");
+        nest.type = "button";
+        nest.className = "tree-btn nest";
+        nest.textContent = t("treeNest");
+        nest.title = t("treeNestHint");
+        nest.onclick = () => {
+          const cur = isArray ? obj[Number(k)] : obj[k];
+          const wrapped = (cur === undefined || cur === null || cur === "")
+            ? {}
+            : (typeof cur === "object" ? cur : { value: cur });
+          if (isArray) {
+            const arr = obj.slice();
+            arr[Number(k)] = wrapped;
+            onChange(arr, true);
+          } else {
+            const next = Object.assign({}, obj);
+            next[k] = wrapped;
+            onChange(next, true);
+          }
+        };
+        row.appendChild(nest);
+
+        const rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "tree-btn remove";
+        rm.textContent = "✕";
+        rm.title = t("treeRemove");
+        rm.onclick = () => {
+          if (isArray) {
+            const arr = obj.slice();
+            arr.splice(Number(k), 1);
+            onChange(arr, true);
+          } else {
+            const next = Object.assign({}, obj);
+            delete next[k];
+            onChange(next, true);
+          }
+        };
+        row.appendChild(rm);
+        box.appendChild(row);
+      });
+
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "tree-btn add";
+      add.textContent = isArray ? t("treeAddItem") : t("treeAddField");
+      add.onclick = () => {
+        if (isArray) {
+          onChange(obj.concat([""]), true);
+        } else {
+          let name = "field";
+          let i = 1;
+          while (name in obj) { name = `field_${i++}`; }
+          const next = Object.assign({}, obj);
+          next[name] = "";
+          onChange(next, true);
+        }
+      };
+      box.appendChild(add);
+
+      // Bulk add: many comma-separated elements in one go.
+      const bulk = document.createElement("div");
+      bulk.className = "tree-bulk";
+      const bulkInput = document.createElement("input");
+      bulkInput.type = "text";
+      bulkInput.placeholder = isArray ? t("treeBulkArr") : t("treeBulkObj");
+      const bulkBtn = document.createElement("button");
+      bulkBtn.type = "button";
+      bulkBtn.className = "tree-btn add";
+      bulkBtn.textContent = t("treeBulkAdd");
+      function commitBulk() {
+        const tokens = bulkInput.value
+          .split(/[,，]/)
+          .map(s => s.trim())
+          .filter(s => s !== "");
+        if (tokens.length === 0) return;
+        if (isArray) {
+          onChange(obj.concat(tokens.map(coerceToken)), true);
+        } else {
+          const next = Object.assign({}, obj);
+          tokens.forEach(tok => {
+            const eq = tok.indexOf("=");
+            if (eq >= 0) {
+              const key = tok.slice(0, eq).trim();
+              if (key) next[key] = coerceToken(tok.slice(eq + 1));
+            } else {
+              next[tok] = "";
+            }
+          });
+          onChange(next, true);
+        }
+        bulkInput.value = "";
+      }
+      bulkBtn.onclick = commitBulk;
+      bulkInput.onkeydown = (e) => {
+        if (e.key === "Enter") { e.preventDefault(); commitBulk(); }
+      };
+      bulk.appendChild(bulkInput);
+      bulk.appendChild(bulkBtn);
+      box.appendChild(bulk);
+      return box;
+    }
+
+    // Mount the tree editor into `host`; persist(newRoot) stores each change.
+    function renderTreeEditor(host, root, persist) {
+      let current = (root && typeof root === "object" && !Array.isArray(root)) ? root : {};
+
+      function apply(next, structural) {
+        current = next;
+        persist(next);
+        if (structural) paint();
+      }
+
+      function paint() {
+        host.innerHTML = "";
+        const box = document.createElement("div");
+        box.className = "tree-root";
+
+        const toolbar = document.createElement("div");
+        toolbar.className = "tree-toolbar";
+        const title = document.createElement("span");
+        title.className = "tree-toolbar-title";
+        title.textContent = t("treeRoot") + " (object)";
+        toolbar.appendChild(title);
+        const clearBtn = document.createElement("button");
+        clearBtn.type = "button";
+        clearBtn.className = "tree-btn remove";
+        clearBtn.textContent = t("clearDoc");
+        clearBtn.onclick = () => apply({}, true);
+        toolbar.appendChild(clearBtn);
+        box.appendChild(toolbar);
+
+        box.appendChild(buildContainerEditor(current, apply, 0, false));
+        host.appendChild(box);
+      }
+
+      paint();
+    }
+
+    // Free-form text editor for arbitrary JSON/YAML. persist(parsed) stores it.
+    function mountTextEditor(host, value, persist) {
+      host.innerHTML = `
+        <div class="doc-editor-card">
+          <div class="doc-editor-toolbar">
+            <span style="font-weight:600; color:var(--text);">${t("docEditor")}</span>
+            <div class="doc-editor-toolbar-actions">
+              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" data-act="format">${t("formatDoc")}</button>
+              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" data-act="clear">${t("clearDoc")}</button>
+            </div>
+          </div>
+          <textarea class="doc-editor-textarea" spellcheck="false"></textarea>
+        </div>
+        <div class="form-hint">${t("textHint")}</div>
+        <div class="form-error"></div>
+      `;
+      const ta = host.querySelector("textarea");
+      const err = host.querySelector(".form-error");
+      try {
+        ta.value = JSON.stringify(value || {}, null, 2);
+      } catch (e) {
+        ta.value = "{}";
+      }
+
+      let timer = null;
+      ta.oninput = () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          const text = ta.value.trim();
+          if (!text) {
+            err.textContent = "";
+            persist({});
+            return;
+          }
+          try {
+            const resp = await fetch("/api/parse", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ content: text })
+            });
+            const res = await resp.json();
+            if (res.context) {
+              err.textContent = "";
+              persist(res.context);
+            } else {
+              err.textContent = res.error || t("textParseError");
+            }
+          } catch (e) {
+            err.textContent = String(e);
+          }
+        }, 200);
+      };
+
+      host.querySelector('[data-act="format"]').onclick = () => {
+        try {
+          ta.value = JSON.stringify(JSON.parse(ta.value), null, 2);
+          err.textContent = "";
+        } catch (e) {
+          err.textContent = t("textParseError");
+        }
+      };
+      host.querySelector('[data-act="clear"]').onclick = () => {
+        ta.value = "{}";
+        persist({});
+      };
+    }
+
+    function starterData(provider) {
+      if (provider === "custom") {
+        return {
+          document: {
+            app: {
+              name: "my-app",
+              enabled: true,
+              port: 8080,
+              tags: ["web", "api"],
+              database: { host: "localhost", port: 5432, ssl: false },
+              notes: "comma, 逗号, both are kept"
+            }
+          }
+        };
+      }
+      if (provider === "json") {
+        return { document: {} };
+      }
+      return {};
+    }
+
     async function initApp() {
       try {
         const resp = await fetch("/api/providers");
@@ -609,6 +1240,9 @@ _HTML_PAGE = """<!DOCTYPE html>
 
       await loadSchema(currentProvider);
       restoreDraft();
+      if (!formData || Object.keys(formData).length === 0) {
+        formData = starterData(currentProvider);
+      }
       renderStep();
       triggerLivePreview();
     }
@@ -683,6 +1317,228 @@ _HTML_PAGE = """<!DOCTYPE html>
             setDotted(formData, field.name, sel.value);
             saveDraft();
             triggerLivePreview();
+          };
+        } else if (field.type === "tree") {
+          grp.innerHTML = `
+            <label class="form-label">
+              <span>${esc(loc(field, "title"))}</span>
+            </label>
+            <div class="editor-mode-toggle">
+              <button type="button" class="mode-btn active" id="modeTree_${fid}">${t("modeTree")}</button>
+              <button type="button" class="mode-btn" id="modeText_${fid}">${t("modeText")}</button>
+            </div>
+            <div id="treeHost_${fid}"></div>
+            <div id="textHost_${fid}" style="display:none;"></div>
+            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+            <div class="form-error"></div>
+          `;
+          const treeHost = grp.querySelector(`#treeHost_${fid}`);
+          const textHost = grp.querySelector(`#textHost_${fid}`);
+          const btnTree = grp.querySelector(`#modeTree_${fid}`);
+          const btnText = grp.querySelector(`#modeText_${fid}`);
+          let treeData = existing;
+          if (!treeData || typeof treeData !== "object") {
+            treeData = {};
+          }
+          const persistTree = (next) => {
+            treeData = next;
+            setDotted(formData, field.name, next);
+            saveDraft();
+            triggerLivePreview();
+          };
+          function showTreeMode() {
+            btnTree.className = "mode-btn active";
+            btnText.className = "mode-btn";
+            treeHost.style.display = "";
+            textHost.style.display = "none";
+            renderTreeEditor(treeHost, treeData, persistTree);
+          }
+          function showTextMode() {
+            btnTree.className = "mode-btn";
+            btnText.className = "mode-btn active";
+            treeHost.style.display = "none";
+            textHost.style.display = "";
+            mountTextEditor(textHost, treeData, persistTree);
+          }
+          btnTree.onclick = showTreeMode;
+          btnText.onclick = showTextMode;
+          showTreeMode();
+        } else if (field.type === "document" || (currentProvider === "json" && field.name === "document")) {
+          let docData = existing;
+          if ((!docData || (typeof docData === "object" && Object.keys(docData).length === 0)) && currentProvider === "json") {
+            const keys = Object.keys(formData).filter(k => k !== "document");
+            if (keys.length > 0) docData = formData;
+          }
+          if (!docData) {
+            docData = {
+              app: {
+                name: "example-app",
+                port: 8080,
+                environment: "development"
+              }
+            };
+            if (currentProvider === "json") {
+              formData = JSON.parse(JSON.stringify(docData));
+              formData.document = JSON.parse(JSON.stringify(docData));
+            } else {
+              setDotted(formData, field.name, docData);
+            }
+          }
+          let initialText = "";
+          try {
+            initialText = typeof docData === "string" ? docData : JSON.stringify(docData, null, 2);
+          } catch (e) {
+            initialText = "{}";
+          }
+
+          grp.innerHTML = `
+            <label class="form-label">
+              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
+            </label>
+            <div class="doc-dropzone" id="dropzone_${fid}">
+              <div class="doc-dropzone-icon">📄</div>
+              <div class="doc-dropzone-text">${t("uploadOrDrop")}</div>
+              <div class="doc-dropzone-sub">${t("dropHint")}</div>
+              <input type="file" id="dropInput_${fid}" style="display:none;" accept=".json,.yaml,.yml">
+            </div>
+            <div class="doc-editor-card">
+              <div class="doc-editor-toolbar">
+                <span style="font-weight:600; color:var(--text);">${t("docEditor")}</span>
+                <div class="doc-editor-toolbar-actions">
+                  <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocSample_${fid}">${t("sampleDoc")}</button>
+                  <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocFormat_${fid}">${t("formatDoc")}</button>
+                  <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocClear_${fid}">${t("clearDoc")}</button>
+                </div>
+              </div>
+              <textarea class="doc-editor-textarea" id="docText_${fid}" spellcheck="false"></textarea>
+            </div>
+            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+            <div class="form-error" id="docErr_${fid}"></div>
+          `;
+
+          const dropzone = grp.querySelector(`#dropzone_${fid}`);
+          const dropInput = grp.querySelector(`#dropInput_${fid}`);
+          const textarea = grp.querySelector(`#docText_${fid}`);
+          const docErr = grp.querySelector(`#docErr_${fid}`);
+          const btnSample = grp.querySelector(`#btnDocSample_${fid}`);
+          const btnFormat = grp.querySelector(`#btnDocFormat_${fid}`);
+          const btnClear = grp.querySelector(`#btnDocClear_${fid}`);
+
+          textarea.value = initialText;
+
+          function updateDocContext(parsed) {
+            if (currentProvider === "json") {
+              formData = parsed;
+              formData.document = parsed;
+            } else {
+              setDotted(formData, field.name, parsed);
+            }
+            saveDraft();
+            triggerLivePreview();
+          }
+
+          let docTimer = null;
+          function parseAndApply(text) {
+            clearTimeout(docTimer);
+            docTimer = setTimeout(async () => {
+              const trimmed = text.trim();
+              if (!trimmed) {
+                docErr.textContent = "";
+                updateDocContext({});
+                return;
+              }
+              try {
+                const resp = await fetch("/api/parse", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ content: trimmed })
+                });
+                const res = await resp.json();
+                if (res.context) {
+                  docErr.textContent = "";
+                  updateDocContext(res.context);
+                } else {
+                  docErr.textContent = res.error || "Format parse error";
+                }
+              } catch (err) {
+                docErr.textContent = String(err);
+              }
+            }, 150);
+          }
+
+          textarea.oninput = () => {
+            parseAndApply(textarea.value);
+          };
+
+          async function handleDocFile(file) {
+            if (!file) return;
+            try {
+              const text = await file.text();
+              textarea.value = text;
+              const resp = await fetch("/api/parse", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: text })
+              });
+              const res = await resp.json();
+              if (res.context) {
+                docErr.textContent = "";
+                updateDocContext(res.context);
+                showToast(t("uploadOk")(file.name));
+              } else {
+                docErr.textContent = res.error || "Format parse error";
+              }
+            } catch (e) {
+              docErr.textContent = String(e);
+            }
+          }
+
+          dropzone.onclick = () => dropInput.click();
+          dropInput.onchange = () => {
+            if (dropInput.files[0]) handleDocFile(dropInput.files[0]);
+          };
+          dropzone.ondragover = (e) => {
+            e.preventDefault();
+            dropzone.classList.add("drag-over");
+          };
+          dropzone.ondragleave = () => {
+            dropzone.classList.remove("drag-over");
+          };
+          dropzone.ondrop = (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("drag-over");
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+              handleDocFile(e.dataTransfer.files[0]);
+            }
+          };
+
+          btnSample.onclick = () => {
+            const sample = {
+              app: {
+                name: "checkout-api",
+                version: "1.0.0",
+                port: 8080,
+                environment: "production",
+                labels: { tier: "backend", team: "core" }
+              }
+            };
+            textarea.value = JSON.stringify(sample, null, 2);
+            parseAndApply(textarea.value);
+          };
+
+          btnFormat.onclick = () => {
+            try {
+              const val = JSON.parse(textarea.value);
+              textarea.value = JSON.stringify(val, null, 2);
+              docErr.textContent = "";
+            } catch (e) {
+              showToast("JSON 格式化需要标准 JSON 语法 / Standard JSON required");
+            }
+          };
+
+          btnClear.onclick = () => {
+            textarea.value = "{\\n}";
+            parseAndApply(textarea.value);
           };
         } else if (field.type === "mapping") {
           const mapData = existing || {};
@@ -834,6 +1690,10 @@ _HTML_PAGE = """<!DOCTYPE html>
     }
 
     function setFormat(fmt) {
+      if (fmt === "xml") {
+        showToast(t("xmlSoon"));
+        return;
+      }
       currentFormat = fmt;
       document.getElementById("fmtYaml").className = `format-btn ${fmt === "yaml" ? "active" : ""}`;
       document.getElementById("fmtJson").className = `format-btn ${fmt === "json" ? "active" : ""}`;
@@ -876,19 +1736,66 @@ _HTML_PAGE = """<!DOCTYPE html>
       });
     };
 
+    // Clear All
+    document.getElementById("btnClearAll").onclick = () => {
+      formData = {};
+      if (currentProvider === "custom" || currentProvider === "json") {
+        formData = { document: {} };
+      }
+      saveDraft();
+      renderStep();
+      triggerLivePreview();
+      showToast(t("clearAllDone"));
+    };
+
     // Preset
     document.getElementById("btnPreset").onclick = () => {
-      formData = {
-        service: {
-          name: "payments-core",
-          version: "1.0.0",
-          port: 8080,
-          environment: "production",
-          replicas: 3,
-          labels: { team: "payments", tier: "backend" },
-          health_check: { path: "/healthz", interval_seconds: 15, timeout_seconds: 5 }
-        }
-      };
+      if (currentProvider === "json") {
+        formData = {
+          app: {
+            name: "payments-core",
+            version: "1.0.0",
+            port: 8080,
+            environment: "production",
+            replicas: 3,
+            labels: { team: "payments", tier: "backend" }
+          }
+        };
+        formData.document = JSON.parse(JSON.stringify(formData));
+      } else if (currentProvider === "custom") {
+        formData = {
+          document: {
+            app: {
+              name: "my-app",
+              enabled: true,
+              port: 8080,
+              tags: ["web", "api"],
+              database: { host: "localhost", port: 5432, ssl: false },
+              limits: { cpu: "500m", memory: "512Mi" }
+            }
+          }
+        };
+      } else if (currentProvider === "env") {
+        formData = {
+          variables: {
+            database: { host: "localhost", port: 5432, name: "app_db" },
+            debug: true,
+            log_level: "info"
+          }
+        };
+      } else {
+        formData = {
+          app: {
+            name: "payments-core",
+            version: "1.0.0",
+            port: 8080,
+            environment: "production",
+            replicas: 3,
+            labels: { team: "payments", tier: "backend" },
+            health_check: { path: "/healthz", interval_seconds: 15, timeout_seconds: 5 }
+          }
+        };
+      }
       saveDraft();
       renderStep();
       triggerLivePreview();
@@ -968,6 +1875,9 @@ _HTML_PAGE = """<!DOCTYPE html>
       await loadSchema(currentProvider);
       formData = {};
       restoreDraft();
+      if (!formData || Object.keys(formData).length === 0) {
+        formData = starterData(currentProvider);
+      }
       renderStep();
       triggerLivePreview();
     };
@@ -1049,6 +1959,7 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(encoded)
 
@@ -1057,6 +1968,9 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.end_headers()
         self.wfile.write(encoded)
 
@@ -1079,7 +1993,7 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/schema":
-                provider_name = query.get("provider", ["service"])[0]
+                provider_name = query.get("provider", ["custom"])[0]
                 steps = describe_provider(provider_name, registry=self.registry)
                 self._send_json([s.as_dict() for s in steps])
                 return
@@ -1108,7 +2022,7 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
 
         try:
             if path == "/api/validate":
-                provider_name = payload.get("provider", "service")
+                provider_name = payload.get("provider", "custom")
                 context = payload.get("context", {})
                 diagnostics = diagnose_request(
                     provider_name, context=context, registry=self.registry
@@ -1122,7 +2036,7 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/generate":
-                provider_name = payload.get("provider", "service")
+                provider_name = payload.get("provider", "custom")
                 context = payload.get("context", {})
                 fmt = payload.get("format", "yaml")
                 result = generate(
@@ -1151,7 +2065,7 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/export":
-                provider_name = payload.get("provider", "service")
+                provider_name = payload.get("provider", "custom")
                 context = payload.get("context", {})
                 fmt = payload.get("format", "yaml")
                 output_dir = self._safe_output_dir(str(payload.get("output_dir", ".")))

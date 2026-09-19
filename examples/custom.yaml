@@ -1,4 +1,4 @@
-service:
+app:
   name: checkout-api
   version: "2.4.0"
   port: 8080

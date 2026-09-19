@@ -17,7 +17,7 @@ class Diagnostic:
     """A single, machine-readable validation message.
 
     ``field`` is the dotted path to the offending value (for example
-    ``service.port``). ``message`` is the fully rendered, user-facing text
+    ``app.port``). ``message`` is the fully rendered, user-facing text
     (for example ``port must be between 1 and 65535, got 99999``).
     ``severity`` is ``"error"`` or ``"warning"``.
     """
@@ -51,7 +51,7 @@ class GenerationResult:
 class ProviderField:
     """Declarative description of one provider input field.
 
-    ``name`` is the dotted field path, e.g. ``service.port``. The remaining
+    ``name`` is the dotted field path, e.g. ``app.port``. The remaining
     attributes describe the value for documentation and future UI generation.
 
     ``i18n`` optionally maps a locale (e.g. ``"zh"``) to translated

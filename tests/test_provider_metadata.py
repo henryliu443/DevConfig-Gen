@@ -8,27 +8,25 @@ from devconfig_gen import (
     describe_provider,
     diagnose_request,
 )
-from devconfig_gen.providers import JsonProvider, ServiceProvider
+from devconfig_gen.providers import CustomProvider, EnvProvider, JsonProvider
 
 
 class TestProviderMetadata(unittest.TestCase):
     def test_describe_provider_returns_steps(self):
-        steps = describe_provider("service")
+        steps = describe_provider("custom")
         self.assertTrue(all(isinstance(step, ProviderStep) for step in steps))
         step_ids = [step.id for step in steps]
-        self.assertEqual(step_ids, ["identity", "runtime", "metadata"])
+        self.assertEqual(step_ids, ["document"])
 
     def test_provider_fields_expose_constraints(self):
         fields = {
             field.name: field
-            for step in describe_provider("service")
+            for step in describe_provider("env")
             for field in step.fields
         }
-        port = fields["service.port"]
-        self.assertEqual(port.type, "integer")
-        self.assertTrue(port.required)
-        self.assertEqual((port.minimum, port.maximum), (1, 65535))
-        self.assertEqual(fields["service.environment"].choices, ("development", "staging", "production"))
+        variables = fields["variables"]
+        self.assertEqual(variables.type, "mapping")
+        self.assertTrue(variables.required)
 
     def test_step_and_field_serialize_to_json_ready_dicts(self):
         step = ProviderStep(
@@ -44,12 +42,12 @@ class TestProviderMetadata(unittest.TestCase):
         json.dumps(data)
 
     def test_field_title_defaults_to_name(self):
-        field = ProviderField("service.port")
-        self.assertEqual(field.as_dict()["title"], "service.port")
+        field = ProviderField("app.port")
+        self.assertEqual(field.as_dict()["title"], "app.port")
 
     def test_i18n_metadata_round_trips(self):
         field = ProviderField(
-            "service.port",
+            "app.port",
             title="Port",
             description="TCP port.",
             i18n={"zh": {"title": "端口", "description": "TCP 端口。"}},
@@ -72,7 +70,7 @@ class TestProviderMetadata(unittest.TestCase):
         self.assertNotIn("i18n", ProviderField("x").as_dict())
 
     def test_builtin_providers_expose_chinese_metadata(self):
-        for provider in ("service", "env", "json"):
+        for provider in ("custom", "env", "json"):
             for step in describe_provider(provider):
                 self.assertIn("zh", step.i18n, f"{provider} step {step.id}")
                 self.assertIn("title", step.i18n["zh"])
@@ -86,13 +84,11 @@ class TestProviderMetadata(unittest.TestCase):
         self.assertEqual(steps[0].id, "document")
 
     def test_diagnose_request_uses_structured_provider_output(self):
-        diagnostics = diagnose_request(
-            "service", context={"name": "web", "port": 99999, "extra": 1}
-        )
+        diagnostics = diagnose_request("env", context={})
         self.assertTrue(all(isinstance(item, Diagnostic) for item in diagnostics))
         fields = {item.field for item in diagnostics}
-        self.assertIn("service.port", fields)
-        self.assertIn("service.extra", fields)
+        self.assertIn("variables", fields)
+        self.assertEqual(diagnostics[0].severity, "error")
 
     def test_diagnose_request_falls_back_to_messages(self):
         class Minimal:
@@ -112,12 +108,11 @@ class TestProviderMetadata(unittest.TestCase):
         self.assertEqual(diagnostics[0].field, "")
 
     def test_builtin_providers_registered(self):
-        from devconfig_gen.providers import EnvProvider
-
         from devconfig_gen.registry import default_registry
 
-        self.assertEqual(default_registry.names(), ("env", "json", "service"))
-        self.assertIsInstance(default_registry.get("service"), ServiceProvider)
+        self.assertEqual(default_registry.names(), ("custom", "env", "json"))
+        self.assertIsInstance(default_registry.get("custom"), CustomProvider)
+        self.assertIsInstance(default_registry.get("json"), JsonProvider)
         self.assertIsInstance(default_registry.get("env"), EnvProvider)
 
 

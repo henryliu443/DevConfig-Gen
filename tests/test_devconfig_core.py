@@ -10,10 +10,21 @@ from devconfig_gen.cli import build_parser
 class TestDevConfigCore(unittest.TestCase):
     def test_json_provider_generates_and_persists_artifact(self):
         with tempfile.TemporaryDirectory() as directory:
-            result = generate("json", GenerationRequest(context={"service": {"enabled": True}}), output_dir=directory)
+            result = generate("json", GenerationRequest(context={"app": {"enabled": True}}), output_dir=directory)
             output = Path(directory) / "config.json"
             self.assertEqual(result.provider, "json")
-            self.assertEqual(json.loads(output.read_text()), {"service": {"enabled": True}})
+            self.assertEqual(json.loads(output.read_text()), {"app": {"enabled": True}})
+
+    def test_json_provider_unwraps_document_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = generate(
+                "json",
+                GenerationRequest(context={"document": {"app": {"enabled": True}}}),
+                output_dir=directory,
+            )
+            output = Path(directory) / "config.json"
+            self.assertEqual(result.provider, "json")
+            self.assertEqual(json.loads(output.read_text()), {"app": {"enabled": True}})
 
     def test_registry_rejects_unknown_provider(self):
         with self.assertRaisesRegex(ValueError, "unknown provider"):

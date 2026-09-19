@@ -21,7 +21,7 @@ engine.py  ---- build_request / generate_pipeline / generate_from_file
   |            diagnose_request / describe_provider
   |            (the single shared pipeline, with multi-source deep_merge)
   v
-ProviderRegistry -> ConfigProvider (`json`, `service`, `env`)
+ProviderRegistry -> ConfigProvider (`custom`, `json`, `env`)
   |
   v
 formats.py  (JSON/YAML load, dump, detection, media types, deep_merge, coerce_scalar)
@@ -69,7 +69,7 @@ When multiple input documents are provided to `build_request` or `generate_pipel
    - Nested mappings are merged recursively (nested keys combine).
    - Non-mapping values (scalars, lists) overwrite prior values.
    - Neither input dictionary is mutated.
-3. Dotted-path overrides (e.g. `--set service.port=9090`) are coerced via
+3. Dotted-path overrides (e.g. `--set app.port=9090`) are coerced via
    `formats.coerce_scalar` (preserving booleans, numbers, and null) and applied
    last via `_set_nested`, guaranteeing command-line precedence.
 
@@ -97,11 +97,12 @@ while `Diagnostic.field` keeps the full dotted path for tooling.
 
 ### Providers (`providers/`)
 
+- `custom` — a schema-free provider for arbitrary documents. It accepts any
+  nesting of mappings, sequences, and scalars with no required fields, and the
+  studio renders its `tree` field as a recursive editor where nodes can be
+  added, removed, retyped, or cleared at any depth.
 - `json` — a pass-through provider that normalizes/re-serializes an arbitrary
   document. It proves the pipeline without imposing a schema.
-- `service` — the complete example provider. It normalizes defaults, coerces
-  numeric strings, validates every field with a structured diagnostic, exposes
-  declarative `steps`, and emits a structured service configuration document.
 - `env` — flattens a nested mapping into `UPPER_SNAKE_CASE` `.env` text,
   demonstrating a non-JSON output format and a provider-driven schema step.
 
@@ -116,7 +117,10 @@ contains generation, validation, or serialization logic of its own:
   re-runs with the previous answers pre-filled instead of restarting.
 - `web_ui.py` — the `devconfig-gen ui` single-page studio, served by the
   standard-library `ThreadingHTTPServer`. The HTML/CSS/JS is embedded (no build
-  step) and it calls the engine through a small JSON API.
+  step) and it calls the engine through a small JSON API. It renders each
+  `ProviderField` by `type`: `tree` fields get a recursive editor (add/remove/
+  retype/clear at any depth), `document` fields get a drop-zone plus inline
+  editor, and the header offers a "Clear All" reset for the active provider.
 
 The web server is local-only by design:
 

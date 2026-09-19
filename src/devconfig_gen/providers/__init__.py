@@ -1,7 +1,7 @@
 """Built-in configuration providers."""
 
+from .custom import CustomProvider
 from .env_provider import EnvProvider
 from .json_provider import JsonProvider
-from .service import ServiceProvider
 
-__all__ = ["EnvProvider", "JsonProvider", "ServiceProvider"]
+__all__ = ["CustomProvider", "EnvProvider", "JsonProvider"]

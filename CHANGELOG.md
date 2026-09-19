@@ -4,7 +4,23 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0]
+
+### Added
+
+- `custom` provider: a schema-free generic document that accepts any JSON/YAML
+  nesting (mapping, sequence, or scalar root) and is editable at any depth.
+- WebUI tree editor for `custom` with per-container bulk add and a "nest"
+  action, plus a JSON/YAML text mode and a header "Clear All" reset.
+
+### Removed
+
+- The `service` provider and its `examples/service.*` samples. Use `custom` for
+  arbitrary documents, `json` for pass-through, and `env` for `.env` output.
+
+### Changed
+
+- `devconfig-gen init` now defaults to `--provider custom`.
 
 ## [0.3.0]
 ### Added

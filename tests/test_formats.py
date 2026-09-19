@@ -42,7 +42,7 @@ class TestYamlFormat(unittest.TestCase):
 
     def test_nested_mappings_and_sequences(self):
         text = (
-            "service:\n"
+            "app:\n"
             "  name: web\n"
             "  ports:\n"
             "    - 80\n"
@@ -53,7 +53,7 @@ class TestYamlFormat(unittest.TestCase):
         self.assertEqual(
             formats.loads(text, "yaml"),
             {
-                "service": {
+                "app": {
                     "name": "web",
                     "ports": [80, 443],
                     "labels": {"team": "platform"},

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Dict, Iterable
 
 from .models import ConfigProvider
-from .providers import EnvProvider, JsonProvider, ServiceProvider
+from .providers import CustomProvider, EnvProvider, JsonProvider
 
 
 class ProviderRegistry:
@@ -33,4 +33,6 @@ class ProviderRegistry:
         return tuple(sorted(self._providers))
 
 
-default_registry = ProviderRegistry((JsonProvider(), ServiceProvider(), EnvProvider()))
+default_registry = ProviderRegistry(
+    (CustomProvider(), JsonProvider(), EnvProvider())
+)
