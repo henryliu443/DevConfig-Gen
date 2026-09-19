@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Complete technical documentation set under `docs/`, covering installation,
+  CLI, Python API, providers, formats, input merging, validation, the
+  interactive wizard, the Web UI/HTTP API, development, and architecture.
+- `mkdocs.yml` (MkDocs + Material) plus a GitHub Pages workflow that publishes
+  `docs/` from the dedicated `docs` branch (guarded by `if` checks and
+  environment/branch protection) ; the Markdown files remain the source of
+  truth, and Unicode-preserving heading anchors keep the existing relative
+  links valid.
+
+### Fixed
+
+- `devconfig_gen.__version__` now reports `1.0.0`, matching `pyproject.toml`;
+  the CLI `--version` output reads the package version instead of a hard-coded
+  string, and a test guards the two against drifting apart.
+
 ## [1.0.0]
 
 ### Added
