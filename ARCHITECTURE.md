@@ -38,7 +38,9 @@ validation.py (path-aware Diagnostic helpers)
   a pre-rendered string), and `media_type`.
 - `GenerationResult` — the provider name plus the artifacts it produced.
 - `ProviderField` / `ProviderStep` — declarative field metadata for
-  documentation and the interactive clients.
+  documentation and the interactive clients. Both accept an optional `i18n`
+  mapping (`{"zh": {"title": ..., "description": ...}}`) so clients can render
+  localized labels while the canonical English strings stay the default.
 - `ConfigProvider` — the protocol providers implement.
 
 ### Engine (`engine.py`)

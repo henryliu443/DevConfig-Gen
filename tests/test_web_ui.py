@@ -75,6 +75,13 @@ class TestWebUI(unittest.TestCase):
         self.assertGreaterEqual(len(steps), 3)
         self.assertEqual(steps[0]["id"], "identity")
 
+    def test_get_api_schema_includes_i18n(self):
+        status, body = self._get("/api/schema?provider=service")
+        self.assertEqual(status, 200)
+        steps = json.loads(body)
+        self.assertIn("zh", steps[0]["i18n"])
+        self.assertIn("title", steps[0]["fields"][0]["i18n"]["zh"])
+
     def test_get_api_schema_unknown_provider_returns_400(self):
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             self._get("/api/schema?provider=missing")

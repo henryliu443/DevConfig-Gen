@@ -21,11 +21,11 @@ from .models import GenerationRequest
 from .registry import ProviderRegistry, default_registry
 
 _HTML_PAGE = """<!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevConfig-Gen — Configuration Studio</title>
+  <title>DevConfig-Gen — 配置工作台</title>
   <style>
     :root {
       --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -399,16 +399,17 @@ _HTML_PAGE = """<!DOCTYPE html>
   <header>
     <div class="brand">
       <span>⚙️ DevConfig-Gen</span>
-      <span class="brand-tag">Studio</span>
+      <span class="brand-tag" data-i18n="studio">工作台</span>
     </div>
     <div class="header-controls">
       <select id="providerSelect" style="width: auto; padding: 0.4rem 0.8rem;">
         <option value="service">Provider: service</option>
       </select>
-      <button class="btn btn-secondary" id="btnUploadConfig">⬆️ Import File</button>
+      <button class="btn btn-secondary" id="btnUploadConfig" data-i18n="importFile">⬆️ 导入文件</button>
       <input type="file" id="fileInput" style="display: none;" accept=".json,.yaml,.yml">
-      <button class="btn btn-secondary" id="btnPreset">✨ Load Preset</button>
-      <button class="btn btn-primary" id="btnExport">💾 Save to Disk</button>
+      <button class="btn btn-secondary" id="btnPreset" data-i18n="loadPreset">✨ 加载预设</button>
+      <button class="btn btn-primary" id="btnExport" data-i18n="saveToDisk">💾 保存到磁盘</button>
+      <button class="btn btn-secondary" id="btnLang" style="padding: 0.4rem 0.7rem; font-size: 0.8rem;">中 / EN</button>
     </div>
   </header>
 
@@ -417,42 +418,129 @@ _HTML_PAGE = """<!DOCTYPE html>
       <div class="stepper-nav" id="stepperNav"></div>
       
       <div class="card" id="stepCard">
-        <h2 class="card-title" id="stepTitle">Step Title</h2>
-        <p class="card-desc" id="stepDesc">Step description goes here.</p>
+        <h2 class="card-title" id="stepTitle">步骤标题</h2>
+        <p class="card-desc" id="stepDesc">步骤描述</p>
         
         <div id="stepFields"></div>
 
         <div class="wizard-actions">
-          <button class="btn btn-secondary" id="btnPrev" disabled>← Previous</button>
+          <button class="btn btn-secondary" id="btnPrev" disabled data-i18n="prev">← 上一步</button>
           <div style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">
-            Shortcut: <kbd>⌘</kbd> + <kbd>Enter</kbd>
+            <span data-i18n="shortcut">快捷键</span>: <kbd>⌘</kbd> + <kbd>Enter</kbd>
           </div>
-          <button class="btn btn-primary" id="btnNext">Next →</button>
+          <button class="btn btn-primary" id="btnNext" data-i18n="next">下一步 →</button>
         </div>
       </div>
     </div>
 
     <div class="preview-panel">
       <div class="preview-header">
-        <span class="preview-title">Live Generated Configuration</span>
+        <span class="preview-title" data-i18n="livePreview">实时配置预览</span>
         <div class="preview-toolbar">
           <div class="format-toggle">
             <button class="format-btn active" id="fmtYaml" onclick="setFormat('yaml')">YAML</button>
             <button class="format-btn" id="fmtJson" onclick="setFormat('json')">JSON</button>
           </div>
-          <button class="btn btn-secondary" id="btnCopy" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">📋 Copy</button>
+          <button class="btn btn-secondary" id="btnCopy" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" data-i18n="copy">📋 复制</button>
         </div>
       </div>
-      <div class="preview-body" id="previewCode"># Generating preview...</div>
+      <div class="preview-body" id="previewCode"># 生成预览中...</div>
       <div class="preview-status" id="previewStatus">
-        <span class="status-ok">●</span> Valid configuration
+        <span class="status-ok">●</span> <span data-i18n="validConfig">配置有效</span>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast">Notice message</div>
+  <div class="toast" id="toast">通知消息</div>
 
   <script>
+    // ── i18n ──────────────────────────────────────────────
+    const i18n = {
+      zh: {
+        studio: "工作台", importFile: "⬆️ 导入文件", loadPreset: "✨ 加载预设",
+        saveToDisk: "💾 保存到磁盘", prev: "← 上一步", next: "下一步 →",
+        finish: "完成 ✓", shortcut: "快捷键", livePreview: "实时配置预览",
+        copy: "📋 复制", validConfig: "配置有效", providerLabel: "Provider: ",
+        issues: (n) => `${n} 个校验问题`,
+        allDone: "✓ 全部步骤完成！可以保存或复制。",
+        copied: "📋 已复制配置到剪贴板！",
+        presetLoaded: "✨ 已加载生产环境预设！",
+        saved: (f) => `💾 已保存: ${f}`,
+        saveFail: (e) => `保存失败: ${e}`,
+        exportErr: (e) => `导出错误: ${e}`,
+        enterDir: "请输入保存配置的目标目录:",
+        parseFail: (e) => `解析失败: ${e}`,
+        uploadOk: (n) => `⬆️ 已从 ${n} 反向解析并填充！`,
+        uploadErr: (e) => `上传失败: ${e}`,
+        noEntries: "暂无条目",
+        keyValuePairs: "键值对",
+        add: "+ 添加",
+        key: "键", value: "值",
+        generating: "# 生成预览中...",
+        validationError: "# 校验错误:\\n# ",
+      },
+      en: {
+        studio: "Studio", importFile: "⬆️ Import File", loadPreset: "✨ Load Preset",
+        saveToDisk: "💾 Save to Disk", prev: "← Previous", next: "Next →",
+        finish: "Finish ✓", shortcut: "Shortcut", livePreview: "Live Generated Configuration",
+        copy: "📋 Copy", validConfig: "Valid configuration", providerLabel: "Provider: ",
+        issues: (n) => `${n} validation ${n === 1 ? 'issue' : 'issues'}`,
+        allDone: "✓ All steps completed! Ready to save or copy.",
+        copied: "📋 Copied configuration to clipboard!",
+        presetLoaded: "✨ Loaded production service preset!",
+        saved: (f) => `💾 Saved: ${f}`,
+        saveFail: (e) => `Save failed: ${e}`,
+        exportErr: (e) => `Export error: ${e}`,
+        enterDir: "Enter target directory to save configuration:",
+        parseFail: (e) => `Parse failed: ${e}`,
+        uploadOk: (n) => `⬆️ Successfully backfilled from ${n}!`,
+        uploadErr: (e) => `Upload failed: ${e}`,
+        noEntries: "No entries defined",
+        keyValuePairs: "Key-Value pairs",
+        add: "+ Add",
+        key: "Key", value: "Value",
+        generating: "# Generating preview...",
+        validationError: "# Validation Error:\\n# ",
+      }
+    };
+    let currentLang = localStorage.getItem("dcg_lang") || "zh";
+
+    function t(key, arg) {
+      const val = i18n[currentLang][key];
+      return typeof val === "function" ? val(arg) : val;
+    }
+
+    // Localize a schema object (step or field) using its i18n map.
+    function loc(item, key) {
+      if (item && item.i18n && item.i18n[currentLang] && item.i18n[currentLang][key]) {
+        return item.i18n[currentLang][key];
+      }
+      return item ? item[key] : undefined;
+    }
+
+    function applyLang() {
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        const v = t(key);
+        if (v !== undefined) el.textContent = v;
+      });
+      document.getElementById("previewCode").textContent =
+        (currentLang === "zh") ? "# 生成预览中..." : "# Generating preview...";
+      document.getElementById("toast").textContent =
+        (currentLang === "zh") ? "通知消息" : "Notice message";
+      const btn = document.getElementById("btnLang");
+      btn.textContent = (currentLang === "zh") ? "EN" : "中";
+      document.documentElement.lang = (currentLang === "zh") ? "zh" : "en";
+      document.title = (currentLang === "zh")
+        ? "DevConfig-Gen — 配置工作台"
+        : "DevConfig-Gen — Configuration Studio";
+      // Refresh provider option labels
+      document.querySelectorAll("#providerSelect option").forEach(opt => {
+        opt.textContent = `${t("providerLabel")}${opt.value}`;
+      });
+    }
+
+    // ── Core State ────────────────────────────────────────
     let currentProvider = "service";
     let schemaSteps = [];
     let activeStepIdx = 0;
@@ -511,7 +599,7 @@ _HTML_PAGE = """<!DOCTYPE html>
         data.providers.forEach(p => {
           const opt = document.createElement("option");
           opt.value = p;
-          opt.textContent = `Provider: ${p}`;
+          opt.textContent = `${t("providerLabel")}${p}`;
           select.appendChild(opt);
         });
         select.value = currentProvider;
@@ -538,7 +626,7 @@ _HTML_PAGE = """<!DOCTYPE html>
       schemaSteps.forEach((step, idx) => {
         const btn = document.createElement("button");
         btn.className = `step-btn ${idx === activeStepIdx ? "active" : ""}`;
-        btn.innerHTML = `<span>${idx + 1}.</span> <span>${step.title}</span>`;
+        btn.innerHTML = `<span>${idx + 1}.</span> <span>${esc(loc(step, "title"))}</span>`;
         btn.onclick = () => { activeStepIdx = idx; renderStep(); };
         nav.appendChild(btn);
       });
@@ -549,10 +637,10 @@ _HTML_PAGE = """<!DOCTYPE html>
       const step = schemaSteps[activeStepIdx];
       if (!step) return;
 
-      document.getElementById("stepTitle").textContent = step.title;
-      document.getElementById("stepDesc").textContent = step.description || "";
+      document.getElementById("stepTitle").textContent = loc(step, "title");
+      document.getElementById("stepDesc").textContent = loc(step, "description") || "";
       document.getElementById("btnPrev").disabled = activeStepIdx === 0;
-      document.getElementById("btnNext").textContent = activeStepIdx === schemaSteps.length - 1 ? "Finish ✓" : "Next →";
+      document.getElementById("btnNext").textContent = activeStepIdx === schemaSteps.length - 1 ? t("finish") : t("next");
 
       const fieldsContainer = document.getElementById("stepFields");
       fieldsContainer.innerHTML = "";
@@ -569,9 +657,9 @@ _HTML_PAGE = """<!DOCTYPE html>
           grp.innerHTML = `
             <label class="checkbox-label">
               <input type="checkbox" id="field_${fid}" ${existing ? "checked" : ""}>
-              <span>${esc(field.name)} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
+              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
             </label>
-            <div class="form-hint">${esc(field.description || "")}</div>
+            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
           `;
           const input = grp.querySelector("input");
           input.onchange = () => {
@@ -582,12 +670,12 @@ _HTML_PAGE = """<!DOCTYPE html>
         } else if (field.choices && field.choices.length > 0) {
           grp.innerHTML = `
             <label class="form-label">
-              <span>${esc(field.name)} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
+              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
             </label>
             <select id="field_${fid}">
               ${field.choices.map(c => `<option value="${esc(c)}" ${c === existing ? "selected" : ""}>${esc(c)}</option>`).join("")}
             </select>
-            <div class="form-hint">${esc(field.description || "")}</div>
+            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
             <div class="form-error"></div>
           `;
           const sel = grp.querySelector("select");
@@ -600,11 +688,11 @@ _HTML_PAGE = """<!DOCTYPE html>
           const mapData = existing || {};
           grp.innerHTML = `
             <label class="form-label">
-              <span>${esc(field.name)} (Key-Value pairs)</span>
-              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnAddMap_${fid}">+ Add</button>
+              <span>${esc(loc(field, "title"))} (${t("keyValuePairs")})</span>
+              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnAddMap_${fid}">${t("add")}</button>
             </label>
             <div class="mapping-table" id="mapTable_${fid}"></div>
-            <div class="form-hint">${esc(field.description || "")}</div>
+            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
           `;
           const table = grp.querySelector(`#mapTable_${fid}`);
           const addBtn = grp.querySelector(`#btnAddMap_${fid}`);
@@ -613,14 +701,14 @@ _HTML_PAGE = """<!DOCTYPE html>
             table.innerHTML = "";
             const keys = Object.keys(mapData);
             if (keys.length === 0) {
-              table.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">No entries defined</div>`;
+              table.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">${t("noEntries")}</div>`;
             }
             keys.forEach(k => {
               const row = document.createElement("div");
               row.className = "mapping-row";
               row.innerHTML = `
-                <input type="text" placeholder="Key" value="${esc(k)}" class="map-k">
-                <input type="text" placeholder="Value" value="${esc(mapData[k])}" class="map-v">
+                <input type="text" placeholder="${t("key")}" value="${esc(k)}" class="map-k">
+                <input type="text" placeholder="${t("value")}" value="${esc(mapData[k])}" class="map-v">
                 <button type="button" class="mapping-remove">✕</button>
               `;
               const kInput = row.querySelector(".map-k");
@@ -661,13 +749,13 @@ _HTML_PAGE = """<!DOCTYPE html>
           const isNum = field.type === "integer";
           grp.innerHTML = `
             <label class="form-label">
-              <span>${esc(field.name)} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
+              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
               ${field.minimum !== undefined && field.maximum !== undefined ? `<span class="form-hint">[${field.minimum} - ${field.maximum}]</span>` : ""}
             </label>
             <input type="${isNum ? 'number' : 'text'}" id="field_${fid}" 
                    value="${esc(existing !== null && existing !== undefined ? existing : '')}"
                    placeholder="${esc(field.default !== null && field.default !== undefined ? field.default : '')}">
-            <div class="form-hint">${esc(field.description || "")}</div>
+            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
             <div class="form-error"></div>
           `;
           const input = grp.querySelector("input");
@@ -708,10 +796,10 @@ _HTML_PAGE = """<!DOCTYPE html>
 
         const statusEl = document.getElementById("previewStatus");
         if (valData.valid) {
-          statusEl.innerHTML = `<span class="status-ok">●</span> Valid configuration`;
+          statusEl.innerHTML = `<span class="status-ok">●</span> ${t("validConfig")}`;
         } else {
           const count = valData.diagnostics.length;
-          statusEl.innerHTML = `<span class="status-err">●</span> ${count} validation ${count === 1 ? 'issue' : 'issues'}`;
+          statusEl.innerHTML = `<span class="status-err">●</span> ${t("issues")(count)}`;
           valData.diagnostics.forEach(d => {
             const grpId = `grp_${d.field.replace(/\\./g, "_")}`;
             const grp = document.getElementById(grpId);
@@ -738,7 +826,7 @@ _HTML_PAGE = """<!DOCTYPE html>
         if (genData.artifacts && genData.artifacts.length > 0) {
           codeEl.textContent = genData.artifacts[0].content;
         } else if (genData.error) {
-          codeEl.textContent = `# Validation Error:\\n# ${genData.error}`;
+          codeEl.textContent = t("validationError") + genData.error;
         }
       } catch (err) {
         console.error("Preview failed:", err);
@@ -764,7 +852,7 @@ _HTML_PAGE = """<!DOCTYPE html>
         activeStepIdx++;
         renderStep();
       } else {
-        showToast("✓ All steps completed! Ready to save or copy.");
+        showToast(t("allDone"));
       }
     };
 
@@ -784,7 +872,7 @@ _HTML_PAGE = """<!DOCTYPE html>
     document.getElementById("btnCopy").onclick = () => {
       const code = document.getElementById("previewCode").textContent;
       navigator.clipboard.writeText(code).then(() => {
-        showToast("📋 Copied configuration to clipboard!");
+        showToast(t("copied"));
       });
     };
 
@@ -804,12 +892,12 @@ _HTML_PAGE = """<!DOCTYPE html>
       saveDraft();
       renderStep();
       triggerLivePreview();
-      showToast("✨ Loaded production service preset!");
+      showToast(t("presetLoaded"));
     };
 
     // Export to Disk
     document.getElementById("btnExport").onclick = async () => {
-      const targetDir = prompt("Enter target directory to save configuration:", ".");
+      const targetDir = prompt(t("enterDir"), ".");
       if (targetDir === null) return;
       try {
         const resp = await fetch("/api/export", {
@@ -824,12 +912,12 @@ _HTML_PAGE = """<!DOCTYPE html>
         });
         const res = await resp.json();
         if (res.success) {
-          showToast(`💾 Saved: ${res.saved.join(", ")}`);
+          showToast(t("saved")(res.saved.join(", ")));
         } else {
-          alert(`Save failed: ${res.error}`);
+          alert(t("saveFail")(res.error));
         }
       } catch (err) {
-        alert(`Export error: ${err}`);
+        alert(t("exportErr")(err));
       }
     };
 
@@ -852,12 +940,12 @@ _HTML_PAGE = """<!DOCTYPE html>
           saveDraft();
           renderStep();
           triggerLivePreview();
-          showToast(`⬆️ Successfully backfilled from ${file.name}!`);
+          showToast(t("uploadOk")(file.name));
         } else {
-          alert(`Parse failed: ${res.error}`);
+          alert(t("parseFail")(res.error));
         }
       } catch (err) {
-        alert(`Upload failed: ${err}`);
+        alert(t("uploadErr")(err));
       }
     };
 
@@ -884,8 +972,17 @@ _HTML_PAGE = """<!DOCTYPE html>
       triggerLivePreview();
     };
 
-    // Start App
-    window.onload = initApp;
+    // ── Language Toggle ───────────────────────────────────
+    document.getElementById("btnLang").onclick = () => {
+      currentLang = currentLang === "zh" ? "en" : "zh";
+      localStorage.setItem("dcg_lang", currentLang);
+      applyLang();
+      renderStep();
+      triggerLivePreview();
+    };
+
+    // ── Start App ────────────────────────────────────────
+    window.onload = () => { applyLang(); initApp(); };
   </script>
 </body>
 </html>
@@ -1112,10 +1209,10 @@ def run_web_ui(
     url = f"http://{host}:{port}"
 
     print("=================================================================")
-    print("  DevConfig-Gen Studio (local configuration studio)              ")
-    print(f"  Running locally at: {url}")
-    print(f"  Export workspace root: {root}")
-    print("  Press Ctrl+C to terminate.")
+    print("  DevConfig-Gen Studio (本地配置工作台)                            ")
+    print(f"  本地运行地址: {url}")
+    print(f"  导出工作空间: {root}")
+    print("  按 Ctrl+C 停止服务")
     print("=================================================================")
 
     if open_browser:
@@ -1127,6 +1224,6 @@ def run_web_ui(
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nStudio server stopped.")
+        print("\nStudio server stopped. / 服务已停止。")
     finally:
         server.server_close()

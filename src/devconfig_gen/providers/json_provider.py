@@ -28,12 +28,15 @@ class JsonProvider:
             id="document",
             title="Document",
             description="An arbitrary JSON/YAML document passed through unchanged.",
+            i18n={"zh": {"title": "文档", "description": "任意 JSON/YAML 文档，原样透传。"}},
             fields=(
                 ProviderField(
                     "document",
                     type="mapping",
                     required=True,
+                    title="Document",
                     description="Root mapping of the input document.",
+                    i18n={"zh": {"title": "文档", "description": "输入文档的根映射。"}},
                 ),
             ),
         ),
