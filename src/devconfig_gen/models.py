@@ -53,6 +53,10 @@ class ProviderField:
 
     ``name`` is the dotted field path, e.g. ``service.port``. The remaining
     attributes describe the value for documentation and future UI generation.
+
+    ``i18n`` optionally maps a locale (e.g. ``"zh"``) to translated
+    ``title``/``description`` strings, letting clients render localized
+    metadata without changing the canonical English defaults.
     """
 
     name: str
@@ -63,10 +67,13 @@ class ProviderField:
     choices: Sequence[str] = ()
     minimum: Optional[float] = None
     maximum: Optional[float] = None
+    title: str = ""
+    i18n: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         data = {
             "name": self.name,
+            "title": self.title or self.name,
             "type": self.type,
             "required": self.required,
             "default": self.default,
@@ -78,25 +85,35 @@ class ProviderField:
             data["minimum"] = self.minimum
         if self.maximum is not None:
             data["maximum"] = self.maximum
+        if self.i18n:
+            data["i18n"] = {locale: dict(values) for locale, values in self.i18n.items()}
         return data
 
 
 @dataclass(frozen=True)
 class ProviderStep:
-    """A declarative step grouping fields for a guided input flow."""
+    """A declarative step grouping fields for a guided input flow.
+
+    ``i18n`` optionally maps a locale (e.g. ``"zh"``) to translated
+    ``title``/``description`` strings for localized clients.
+    """
 
     id: str
     title: str
     description: str = ""
     fields: Sequence[ProviderField] = ()
+    i18n: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
 
     def as_dict(self) -> dict:
-        return {
+        data = {
             "id": self.id,
             "title": self.title,
             "description": self.description,
             "fields": [item.as_dict() for item in self.fields],
         }
+        if self.i18n:
+            data["i18n"] = {locale: dict(values) for locale, values in self.i18n.items()}
+        return data
 
 
 class ConfigProvider(Protocol):

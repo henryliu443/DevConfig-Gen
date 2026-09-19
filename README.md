@@ -30,7 +30,7 @@ DevConfig-Gen：
 ## 快速开始 / Quick start (3 minutes)
 
 ```bash
-pipx install --editable .
+pip install devconfig-gen
 devconfig-gen generate \
   --provider service --input examples/service.yaml --output-dir generated --format yaml
 devconfig-gen validate --provider service --input examples/service.yaml
@@ -45,14 +45,22 @@ devconfig-gen ui                         # Web 工作台 / web studio
 
 ## 安装 / Installation
 
+从 PyPI 安装 / Install from PyPI:
+
 ```bash
-pipx install --editable .
+pip install devconfig-gen
 ```
 
 YAML 支持无需外部依赖 / YAML support works with **no external dependencies**.
 
 ```bash
-pipx install --editable ".[yaml]"   # 可选：安装 PyYAML / optional: use PyYAML
+pip install devconfig-gen[yaml]   # 可选：安装 PyYAML / optional: use PyYAML
+```
+
+开发模式 / Development (editable):
+
+```bash
+pip install -e ".[yaml]"
 ```
 
 ## 命令行 / CLI
@@ -147,11 +155,14 @@ devconfig-gen ui --workspace ~/projects/my-app   # 绑定项目目录 / bind to 
 浏览器打开 `http://127.0.0.1:8848` / Opens at `http://127.0.0.1:8848`.
 
 特性 / Features:
+- 中英双语界面，一键切换，偏好本地保存 / Bilingual UI (中文/English) with one-click toggle and saved preference;
 - Apple 原生排版，亮色/暗色主题 / Apple-native typography, light/dark theme;
 - 分步表单向导，内联校验 / Step-by-step wizard with inline validation;
 - 双栏实时预览 / Dual-pane live preview;
 - 模板预设、文件上传、草稿保存、磁盘导出 / Template presets, file upload, auto-save, disk export;
 - 零外部依赖 / Zero external build dependencies.
+
+Provider 的步骤与字段元数据自带 `i18n` 翻译（内置 Provider 已提供中文）/ Provider step and field metadata carry optional `i18n` translations (the built-in providers ship Chinese).
 
 仅绑定本地回环 / Binds to loopback only. 磁盘导出沙箱限制在工作空间内 / Disk export sandboxed to workspace root.
 
@@ -330,8 +341,16 @@ class GreetingProvider:
         ProviderStep(
             id="input",
             title="Greeting input",
+            i18n={"zh": {"title": "问候输入", "description": "输入要问候的对象。"}},
             fields=(
-                ProviderField("who", type="string", required=True, description="Who to greet."),
+                ProviderField(
+                    "who",
+                    type="string",
+                    required=True,
+                    title="Who",
+                    description="Who to greet.",
+                    i18n={"zh": {"title": "对象", "description": "要问候的对象。"}},
+                ),
             ),
         ),
     )

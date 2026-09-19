@@ -36,12 +36,15 @@ class EnvProvider:
             id="variables",
             title="Environment variables",
             description="Nested keys are joined with '_' and upper-cased.",
+            i18n={"zh": {"title": "环境变量", "description": "嵌套键用 '_' 连接并转为大写。"}},
             fields=(
                 ProviderField(
                     "variables",
                     type="mapping",
                     required=True,
+                    title="Variables",
                     description="Variables; nested keys become UPPER_SNAKE_CASE names.",
+                    i18n={"zh": {"title": "变量", "description": "变量；嵌套键会转为 UPPER_SNAKE_CASE 名称。"}},
                 ),
             ),
         ),
