@@ -47,7 +47,8 @@ jobs:
           gh release create "${{ steps.tag.outputs.version }}" \
             dist/* \
             --title "${{ steps.tag.outputs.version }}" \
-            --generate-notes
+            --generate-notes \
+            --clobber
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
