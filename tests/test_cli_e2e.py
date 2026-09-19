@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from devconfig_gen import load_file
+from devconfig_gen import __version__, load_file
 
 from _support import EXAMPLES, run_cli
 
@@ -12,6 +12,11 @@ SAMPLE_YAML = str(EXAMPLES / "custom.yaml")
 
 
 class TestCliEndToEnd(unittest.TestCase):
+    def test_version_matches_package_version(self):
+        result = run_cli("--version")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), f"devconfig-gen {__version__}")
+
     def test_providers_lists_builtins(self):
         result = run_cli("providers")
         self.assertEqual(result.returncode, 0, result.stderr)
