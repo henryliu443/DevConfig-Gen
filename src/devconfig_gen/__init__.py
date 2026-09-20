@@ -33,6 +33,7 @@ from .models import (
     GenerationResult,
     ProviderField,
     ProviderStep,
+    WebUIWidgets,
 )
 from .registry import ProviderRegistry, default_registry
 from .validation import ValidationError
@@ -48,6 +49,7 @@ __all__ = [
     "ProviderRegistry",
     "ProviderStep",
     "ValidationError",
+    "WebUIWidgets",
     "build_request",
     "coerce_scalar",
     "deep_merge",
@@ -67,7 +69,7 @@ __all__ = [
     "run_web_ui",
     "validate_request",
 ]
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 _LAZY_EXPORTS = {
     "run_interactive_wizard": ("interactive", "run_interactive_wizard"),

@@ -1,174 +1,102 @@
 # DevConfig-Gen
 
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)
-![Tests](https://img.shields.io/badge/tests-134%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-143%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
-DevConfig-Gen 是一个开发者工具，用于从结构化输入数据和映射关系生成和校验结构化配置。它围绕一个轻量的 Provider 契约构建，使生成流水线独立于任何特定的配置格式或目标系统。多个输入文档可以在生成前进行合并和覆盖。
+> Provider 驱动的结构化配置生成与校验引擎。
+> A provider-driven engine for generating and validating structured configuration.
 
-A developer tool for generating and validating structured configuration from structured input data and mappings. Built around a small provider contract so the generation pipeline is independent of any particular configuration format or target system. Multiple input documents can be merged and overridden before generation.
+DevConfig-Gen 把「结构化输入 + 映射逻辑」变成「可预测、可校验、确定性的 JSON/YAML
+配置产物」。核心是一个极小的 Provider 契约，使生成流水线独立于任何具体格式或目标
+系统；多个输入文档可以在生成前深度合并与覆盖。CLI、Python API、终端向导、Web
+工作台全部走同一条 `engine` 流水线，产物逐字节一致。
 
-内置三个 Provider / Ships with three providers:
+- **零副作用**：不联网、不装包、不改系统状态；仅在你显式指定 `output_dir` 时写文件。
+- **确定性输出**：JSON/YAML 均保持语义插入顺序，同输入连跑两次 byte-for-byte 一致。
+- **可插拔扩展**：Provider 是唯一扩展点——领域转换、甚至 WebUI 字段渲染都可扩展。
 
-- `custom` — 无 schema 的通用文档，任意 JSON/YAML 层级可增删清空 / schema-free generic document with arbitrary nesting you can add, remove, or clear;
-- `json` — 无依赖的透传/重新序列化 / dependency-free pass-through/re-serialization;
-- `env` — 将嵌套数据扁平化为 `UPPER_SNAKE_CASE` 的 `.env` 文件 / flattens nested data into an `UPPER_SNAKE_CASE` `.env` file.
+## 可插拔扩展 / Extensibility
 
-## 它是什么 / What it is
+**Provider 是唯一扩展点。** 全链路只有这一个扩展缝：
 
-DevConfig-Gen：
+- **领域转换**：注册一个实现 `ConfigProvider` 的对象（`name` / `validate` / `generate`）即可接入新领域；CLI、`schema`、终端向导、Web 工作台通过注册表自动发现，**客户端代码零改动**。
+- **WebUI 字段渲染**：字段渲染查表驱动（`WidgetRegistry`，内置六种默认 Widget）。Provider 可用可选方法 `web_ui_widgets()` 返回 `{field_type: js_factory_source}`，经 `GET /api/widgets?provider=<name>` 下发并注册进同一张 Widget 表；未知类型回退 `string`，**未实现者行为完全不变**。
 
-- 加载结构化文档（JSON 或 YAML）/ loads a structured document (JSON or YAML);
-- 将其规范化为可预测的结构 / normalizes it into a predictable shape;
-- 校验并报告每个问题的精确字段路径 / validates and reports every problem with a precise field path;
-- 通过 Provider 生成结构化配置文档 / generates a structured configuration document through a provider;
-- 将结果写为 JSON 或 YAML / writes the result as JSON or YAML.
+两条硬性边界：领域实现只存在于下游 fork，绝不回填核心；Provider 契约保持稳定，不追逐上游版本。完整规范见 [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)，开发指南见 [`docs/providers.md`](docs/providers.md)，设计动机见 [`PIPELINE_PLAN.md`](PIPELINE_PLAN.md)。
 
-刻意保持本地化且无副作用 / Deliberately local and side-effect free. 不会访问远程服务、安装包、管理系统状态 / Does not contact remote services, install packages, or manage system state.
+## 文档 / Documentation
+
+| 主题 / Topic | 本地 / Local | 在线 / Online |
+| --- | --- | --- |
+| 快速开始 | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/docs/getting-started/) |
+| CLI 参考 | [`docs/cli.md`](docs/cli.md) | [cli](https://henryliu443.github.io/DevConfig-Gen/docs/cli/) |
+| CLI 配方 | [`docs/cli-cookbook.md`](docs/cli-cookbook.md) | [cli-cookbook](https://henryliu443.github.io/DevConfig-Gen/docs/cli-cookbook/) |
+| 输入合并与覆盖 | [`docs/input-and-merge.md`](docs/input-and-merge.md) | [input-and-merge](https://henryliu443.github.io/DevConfig-Gen/docs/input-and-merge/) |
+| 格式支持与产物 | [`docs/formats.md`](docs/formats.md) | [formats](https://henryliu443.github.io/DevConfig-Gen/docs/formats/) |
+| 校验与诊断 | [`docs/validation.md`](docs/validation.md) | [validation](https://henryliu443.github.io/DevConfig-Gen/docs/validation/) |
+| Provider 开发 | [`docs/providers.md`](docs/providers.md) | [providers](https://henryliu443.github.io/DevConfig-Gen/docs/providers/) |
+| Python API | [`docs/python-api.md`](docs/python-api.md) | [python-api](https://henryliu443.github.io/DevConfig-Gen/docs/python-api/) |
+| 交互式向导 | [`docs/wizard.md`](docs/wizard.md) | [wizard](https://henryliu443.github.io/DevConfig-Gen/docs/wizard/) |
+| Web 工作台与 HTTP API | [`docs/web-ui.md`](docs/web-ui.md) | [web-ui](https://henryliu443.github.io/DevConfig-Gen/docs/web-ui/) |
+| 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`docs/architecture.md`](docs/architecture.md) | [architecture](https://henryliu443.github.io/DevConfig-Gen/docs/architecture/) |
+| Provider 铁标准 | [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) | — |
+| 全链路 pluggable 计划 | [`PIPELINE_PLAN.md`](PIPELINE_PLAN.md) | — |
+| 开发与测试 | [`docs/development.md`](docs/development.md) | [development](https://henryliu443.github.io/DevConfig-Gen/docs/development/) |
+
+## 安装 / Install
+
+```bash
+pip install devconfig-gen          # 零外部依赖 / no external dependencies
+pip install "devconfig-gen[yaml]"  # 可选 PyYAML / optional PyYAML
+pipx install devconfig-gen         # 单命令可用 / single-command install
+```
 
 ## 快速开始 / Quick start (3 minutes)
 
 ```bash
-pip install devconfig-gen
 devconfig-gen generate \
   --provider custom --input examples/custom.yaml --output-dir generated --format yaml
 devconfig-gen validate --provider custom --input examples/custom.yaml
 ```
 
-想要引导式流程？运行终端向导或打开本地 Web 工作台 / Prefer a guided flow?
+想要引导式流程 / Prefer a guided flow:
 
 ```bash
 devconfig-gen init --provider custom   # 终端向导 / terminal wizard
-devconfig-gen ui                         # Web 工作台 / web studio
+devconfig-gen ui                       # 本地 Web 工作台 / local web studio
 ```
 
-## 安装 / Installation
+## 内置 Provider / Built-in providers
 
-从 PyPI 安装 / Install from PyPI:
-
-```bash
-pip install devconfig-gen
-```
-
-YAML 支持无需外部依赖 / YAML support works with **no external dependencies**.
-
-```bash
-pip install devconfig-gen[yaml]   # 可选：安装 PyYAML / optional: use PyYAML
-```
-
-开发模式 / Development (editable):
-
-```bash
-pip install -e ".[yaml]"
-```
-
-## 命令行 / CLI
-
-列出可用 Provider / List available providers:
+| Provider | 作用 / Purpose |
+| --- | --- |
+| `custom` | 无 schema 的通用文档，任意 JSON/YAML 层级可增删清空 / schema-free generic document, editable at any depth |
+| `json` | 透传 / 重新序列化任意文档 / pass-through and re-serialization |
+| `env` | 嵌套数据扁平化为 `UPPER_SNAKE_CASE` 的 `.env` / flattens nested data into `UPPER_SNAKE_CASE` `.env` |
 
 ```bash
 devconfig-gen providers
 # custom / env / json
 ```
 
-生成配置 / Generate configuration:
+## 命令行 / CLI
 
 ```bash
-devconfig-gen generate \
-  --provider custom \
-  --input examples/custom.yaml \
-  --output-dir generated \
-  --format yaml
-```
+# 生成 / generate
+devconfig-gen generate --provider custom --input examples/custom.yaml --output-dir dist --format yaml
 
-仅校验不写入 / Validate without writing:
-
-```bash
+# 仅校验 / validate only
 devconfig-gen validate --provider custom --input examples/custom.yaml
-```
+devconfig-gen validate --provider env --input broken.yaml --json   # 结构化诊断
 
-校验失败时报告字段路径 / Validation failure reports field paths:
-
-```bash
-$ devconfig-gen validate --provider env --input broken.yaml
-invalid: variables must not be empty
-```
-
-结构化诊断输出 / Structured diagnostics:
-
-```bash
-devconfig-gen validate --provider env --input broken.yaml --json
-```
-
-查看 Provider Schema / Inspect provider schema:
-
-```bash
+# 查看 schema
 devconfig-gen schema --provider custom
 ```
 
-### 交互式终端向导 / Interactive Terminal Wizard
-
-适用于无头环境、SSH 会话 / For headless servers, SSH sessions:
-
-```bash
-devconfig-gen init --provider custom
-```
-
-向导按 `ProviderField.type` 提示每个字段，含默认值、类型校验、选项、边界检查 / Prompts every field by type with defaults, type validation, choices, bounds checking.
-
-```text
-========================================================
-  DevConfig-Gen Interactive Wizard: 'custom'
-  Answer the prompts below. Press Enter to use defaults.
-========================================================
-
---- [1/1] Custom document ---
-  自由构建任意嵌套的 JSON/YAML 结构；任意层级都可增删或清空。
-? document (load document file or enter entries):
-    Path to JSON/YAML file (or press enter for key=value input): examples/custom.yaml
-    [✓] Loaded document from examples/custom.yaml
-
-Validating configuration...
-[✓] All validations passed!
-
-Select output format (1: YAML [default], 2: JSON): 1
-Writing configuration to '.'...
-[✓] Generated artifact: .../custom.yaml
-```
-
-### Web 可视化工作台 / Configuration Studio WebUI
-
-启动本地 Web 工作台 / Launch local web studio:
-
-```bash
-devconfig-gen ui
-devconfig-gen ui --workspace ~/projects/my-app   # 绑定项目目录 / bind to project dir
-```
-
-浏览器打开 `http://127.0.0.1:8848` / Opens at `http://127.0.0.1:8848`.
-
-特性 / Features:
-- 中英双语界面，一键切换，偏好本地保存 / Bilingual UI (中文/English) with one-click toggle and saved preference;
-- Apple 原生排版，亮色/暗色主题 / Apple-native typography, light/dark theme;
-- 分步表单向导，内联校验 / Step-by-step wizard with inline validation;
-- `custom` Provider 递归树编辑器：任意层级增删字段/项、切换类型、逐层清空 / recursive tree editor for the `custom` provider: add/remove fields or items at any depth, switch types, clear per node;
-- `json` Provider 文档上传与内联编辑器（拖拽 `.json`/`.yaml` 反向解析）/ document drop-zone and inline editor for the `json` provider (drag `.json`/`.yaml` to backfill);
-- 顶部「全部清空」一键重置当前 Provider 内容 / header "Clear All" resets the current provider;
-- 双栏实时预览 / Dual-pane live preview;
-- 模板预设、文件上传、草稿保存、磁盘导出 / Template presets, file upload, auto-save, disk export;
-- 输出格式开关（YAML/JSON，XML 及未来格式已预留）/ output format switch (YAML/JSON; XML and future formats reserved);
-- 零外部依赖 / Zero external build dependencies.
-
-Provider 的步骤与字段元数据自带 `i18n` 翻译（内置 Provider 已提供中文）/ Provider step and field metadata carry optional `i18n` translations (the built-in providers ship Chinese).
-
-仅绑定本地回环 / Binds to loopback only. 磁盘导出沙箱限制在工作空间内 / Disk export sandboxed to workspace root.
-
-退出码 / Exit codes: `0` 成功/success, `1` 校验失败/validation failure, `2` 输入错误/input error.
-
-### 多源合并与覆盖 / Multi-source input and overrides
-
-`--input` 可重复，文档从左到右深度合并 / `--input` may be repeated, deep-merged left to right:
+多源合并与覆盖 / Multi-source merge and overrides (`--input` 可重复，`--set` 最后生效):
 
 ```bash
 devconfig-gen generate \
@@ -180,58 +108,36 @@ devconfig-gen generate \
   --output-dir dist --format yaml
 ```
 
-`--set` 值自动解析 JSON 类型 / `--set` values parsed as JSON when possible (`true`→bool, `42`→int, `null`→null).
+`--set` 值自动解析 JSON 字面量（`true`→bool、`42`→int、`null`→null）。
+完整命令见 [`docs/cli.md`](docs/cli.md) 与 [`docs/cli-cookbook.md`](docs/cli-cookbook.md)。
 
-### 生成任意结构的自定义文档 / Generating an arbitrary custom document
+退出码 / Exit codes: `0` 成功, `1` 校验失败, `2` 输入错误。
 
-`custom` Provider 不限定 schema，任意 JSON/YAML 层级都能生成 / The `custom` provider imposes no schema; any JSON/YAML nesting is generated as-is:
-
-```bash
-devconfig-gen generate --provider custom --input configs/anything.yaml --output-dir dist --format yaml
-```
-
-```python
-from devconfig_gen import GenerationRequest, generate
-
-result = generate(
-    "custom",
-    GenerationRequest(
-        context={"document": {"app": {"name": "web", "limits": {"cpu": "500m"}}}},
-        options={"format": "yaml"},
-    ),
-)
-```
-
-在 Web 工作台中选择 `custom`，它提供两种编辑模式 / In the studio, `custom` offers two editing modes:
-
-- **结构模式**：递归树编辑器，任意层级增删字段/项、切换类型（string/number/boolean/object/array/null）、逐层清空 / **Tree mode**: a recursive editor to add/remove fields or items at any depth, switch types, and clear per node;
-- **文本模式**：直接输入 JSON/YAML，支持列表 `[1,2,3,4,5]`、嵌套 `{"1":{"2":{}}}`、YAML 缩进与 `0: [1,2,3,4,5]` 等任意混合 / **Text mode**: type JSON/YAML directly — lists `[1,2,3,4,5]`, nesting `{"1":{"2":{}}}`, YAML indentation, and `0: [1,2,3,4,5]`, freely mixed.
-
-顶层可以是映射、列表或标量 / The root may be a mapping, a list, or a scalar.
-
-顶部「全部清空」一键重置 / The header "Clear All" resets the current provider.
-
-### 生成 .env 文件 / Generating a .env file
+## Web 工作台 / Configuration Studio
 
 ```bash
-devconfig-gen generate --provider env --input examples/vars.yaml --output-dir dist
-# generated dist/.env
+devconfig-gen ui
+devconfig-gen ui --workspace ~/projects/my-app --no-browser
 ```
 
-```env
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=appdb
-DEBUG=true
-LOG_LEVEL=info
-```
+浏览器打开 `http://127.0.0.1:8848`。零构建、零 npm，仅用 Python 标准库
+`ThreadingHTTPServer` 提供内嵌单页应用。
+
+- 中英双语、亮/暗主题、双栏实时预览、内联校验、草稿自动保存；
+- `custom` 递归树编辑器（任意层级增删/换类型/嵌套/批量添加）+ JSON/YAML 文本模式；
+- `json` 文档拖拽上传与内联编辑器；
+- `env` 键值对表格；
+- 左上角 `☰` 汉堡侧边栏：仓库、文档站点、问题反馈、邮箱；
+- 字段渲染**查表驱动**，Provider 可用可选方法 `web_ui_widgets()` 注册自定义 Widget。
+
+安全边界：仅绑定回环、拒绝非本地 `Host`（DNS rebinding 防护）、导出沙箱限制在
+`workspace_root`。详见 [`docs/web-ui.md`](docs/web-ui.md)。
 
 ## Python API
 
 ```python
 from devconfig_gen import GenerationRequest, generate, generate_from_file
 
-# 内存上下文 / In-memory context
 result = generate(
     "custom",
     GenerationRequest(
@@ -239,28 +145,26 @@ result = generate(
         options={"format": "yaml"},
     ),
 )
-artifact = result.artifacts[0]
-print(artifact.name, artifact.media_type)   # custom.yaml application/yaml
+print(result.artifacts[0].name, result.artifacts[0].media_type)  # custom.yaml application/yaml
 
-# 文件到文件，与 CLI 相同流水线 / File to file, same pipeline as CLI
-generate_from_file(
+generate_from_file("custom", "examples/custom.yaml", output_dir="generated", output_format="yaml")
+```
+
+多源输入 / Multi-source:
+
+```python
+from devconfig_gen import generate_pipeline
+
+generate_pipeline(
     "custom",
-    "examples/custom.yaml",
-    output_dir="generated",
+    input_path=["configs/base.yaml", "configs/prod.json"],
+    overrides={"app.port": 9090},
+    output_dir="dist",
     output_format="yaml",
 )
 ```
 
-直接加载和序列化 / Load and serialize directly:
-
-```python
-from devconfig_gen import load_file, loads, dumps
-
-data = load_file("examples/custom.yaml")
-text = dumps(data, "json")
-```
-
-结构化诊断与 Schema 元数据 / Diagnostics and schema metadata:
+结构化诊断与 schema 元数据 / Diagnostics and schema metadata:
 
 ```python
 from devconfig_gen import diagnose_request, describe_provider
@@ -272,89 +176,12 @@ for step in describe_provider("custom"):
     print(step.id, step.title, [f.name for f in step.fields])
 ```
 
-## 示例输入 / Example input
+完整 API 见 [`docs/python-api.md`](docs/python-api.md)。
 
-`examples/custom.yaml`:
+## 编写自定义 Provider / Writing a provider
 
-```yaml
-app:
-  name: checkout-api
-  version: "2.4.0"
-  port: 8080
-  environment: production
-  replicas: 3
-  labels:
-    team: payments
-    tier: backend
-  health_check:
-    path: /healthz
-    interval_seconds: 15
-    timeout_seconds: 5
-```
-
-`examples/custom.json` 是等效 JSON 文档 / is the equivalent JSON document.
-
-## JSON/YAML 支持与限制 / Support and limitations
-
-JSON 由标准库处理 / JSON handled by standard library. YAML 在安装 PyYAML 时使用，否则用内置解析器 / YAML uses PyYAML when available, otherwise bundled parser.
-
-支持 / Supported:
-- 缩进嵌套的映射和序列 / mappings and sequences by indentation;
-- 标量：字符串、整数、浮点、布尔、`null` / scalars: strings, integers, floats, booleans, `null`;
-- 引号字符串和裸字符串 / quoted and plain strings;
-- 流式集合 `[a, b]` `{x: 1}` / flow collections;
-- 注释和空行 / comments and blank lines;
-- 块标量 `|` `>` 及 `-`/`+` 修剪 / block scalars with chomping.
-
-不支持 / Not supported:
-- 锚点别名 `&`/`*`、自定义标签 `!tag`、合并键 `<<` / anchors, aliases, tags, merge keys;
-- 多文档 `---` / multiple documents;
-- 块标 scalar 内注释可能丢失 / comments inside block scalars may be dropped.
-
-需要完整 YAML 行为请安装 PyYAML / For full YAML, install PyYAML.
-
-`env` Provider 渲染纯文本 `.env`（`media_type: text/plain`）/ renders plain-text `.env`.
-
-## 架构与数据流 / Architecture and data flow
-
-```text
-输入文件 / 上下文 (input file / context)
-        |
-        v
-  formats.load_*        JSON/YAML 解析 + 格式检测
-        |
-        v
-  Provider.diagnose     规范化 + 结构化诊断
-        |
-        v
-  Provider.generate     结构化配置文档
-        |
-        v
-  engine.generate       产物序列化 + 可选持久化
-        |
-        v
-   JSON / YAML 输出
-```
-
-CLI、Python API、向导、工作台调用相同的 engine 函数 / CLI, API, wizard, and studio all call the same engine functions. CLI 本身不含生成逻辑 / CLI contains no generation logic of its own.
-
-核心模块 / Key modules:
-
-| 模块 / Module | 职责 / Responsibility |
-| --- | --- |
-| `formats` | JSON/YAML 加载导出、格式检测、媒体类型 |
-| `validation` | 路径感知校验辅助工具 / path-aware validation helpers |
-| `models` | 请求、产物、诊断、字段、步骤、Provider 协议 |
-| `registry` | ProviderRegistry 及内置 Provider |
-| `engine` | 编排、诊断、Schema、持久化 / orchestration, diagnostics, persistence |
-| `providers` | `custom`、`json`、`env` Provider |
-| `interactive` | `init` 终端向导（延迟加载）/ terminal wizard (lazy-loaded) |
-| `web_ui` | `ui` 本地工作台（延迟加载）/ local studio (lazy-loaded) |
-| `cli` | 仅参数解析 / argument parsing only |
-
-## 编写自定义 Provider / Writing a custom provider (5 minutes)
-
-实现 `ConfigProvider` 协议 / Implement the `ConfigProvider` protocol. 只需 `name`、`validate`、`generate` 必需 / Only `name`, `validate`, `generate` required.
+只需实现 `ConfigProvider` 的 `name`、`validate`、`generate`；`diagnose` /
+`describe_schema` / `web_ui_widgets` 均为可选。
 
 ```python
 from devconfig_gen import (
@@ -416,21 +243,73 @@ from devconfig_gen import GenerationRequest, ProviderRegistry, generate
 from devconfig_gen.providers import CustomProvider, JsonProvider
 
 registry = ProviderRegistry((CustomProvider(), JsonProvider(), GreetingProvider()))
-result = generate("greeting", GenerationRequest(context={"who": "world"}), registry=registry)
+generate("greeting", GenerationRequest(context={"who": "world"}), registry=registry)
 ```
 
-`GeneratedArtifact.content` 可以是数据结构或预渲染字符串 / may be a data structure or pre-rendered string.
+转换型（rich domain）Provider 请遵循 [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)
+（零副作用、变体隔离、无版本追逐、凭据即输入）。WebUI 字段渲染可通过可选方法
+`web_ui_widgets()` 扩展，协议见 [`docs/providers.md`](docs/providers.md) 与
+[`docs/web-ui.md`](docs/web-ui.md)。
 
-## 开发与测试 / Development and testing
+## 架构 / Architecture
+
+```text
+输入文件 / 上下文  →  formats.load_*  →  Provider.diagnose  →  Provider.generate
+                                                              →  engine.generate（序列化 + 可选持久化）
+                                                              →  JSON / YAML 产物
+```
+
+`engine.py` 是唯一执行路径：`generate()` 查表、校验、生成、可选落盘；`build_request`
+负责多源合并与 `overrides`。CLI 与 `init`/`ui` 客户端只调用这些共享函数，不重复实现
+生成逻辑。详见 [`ARCHITECTURE.md`](ARCHITECTURE.md)。
+
+核心模块 / Key modules:
+
+| 模块 | 职责 |
+| --- | --- |
+| `formats` | JSON/YAML 加载导出、格式检测、媒体类型、`deep_merge`、`coerce_scalar` |
+| `validation` | 路径感知校验辅助（一次收集全部问题） |
+| `models` | `GenerationRequest` / `GenerationResult` / `Diagnostic` / `ProviderField` / `ProviderStep` / `ConfigProvider` / `WebUIWidgets` |
+| `registry` | `ProviderRegistry` 与内置 Provider |
+| `engine` | 编排、诊断、schema、持久化 |
+| `providers` | `custom` / `json` / `env` |
+| `interactive` | `init` 终端向导（延迟加载） |
+| `web_ui` | `ui` 本地工作台（延迟加载） |
+| `cli` | 仅参数解析 |
+
+## JSON/YAML 支持与限制
+
+JSON 由标准库处理；YAML 在安装 PyYAML 时使用 PyYAML，否则使用内置子集解析器
+（零依赖）。支持缩进映射/序列、标量、引号与裸字符串、流式集合 `[a, b] {x: 1}`、
+注释空行、块标量 `|` `>` 及 `-`/`+` chomping。不支持锚点别名、自定义标签、合并键
+`<<`、多文档 `---`。需要完整 YAML 行为请安装 PyYAML。详见
+[`docs/formats.md`](docs/formats.md)。
+
+## 仓库关系 / Repo relationship
+
+- 本仓库是 **父仓库（parent / upstream）**，承载中立核心与 Provider 标准。
+- **子仓库（child / fork）**：`DevConfig-Gen_SingBox`，领域集成分支。
+- 领域 Provider（如 `providers/singbox/`）只存在于下游，**不回填父仓库**。
+
+权威方向为 **parent → child → downstream**。约定见 [`AGENTS.md`](AGENTS.md)。
+
+## 开发与测试 / Development
 
 ```bash
-python -m unittest discover -s tests -v
-# 或无需安装 / or without installing:
+pip install -e ".[yaml]"
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
 
-测试覆盖格式解析、校验、Provider、多源合并、CLI/API 等价性、向导、WebUI / Covers format parsing, validation, providers, merging, CLI/API parity, wizard, WebUI.
+构建文档站 / Build the docs site:
+
+```bash
+pip install -e ".[docs]"
+mkdocs build --strict
+```
+
+测试覆盖格式解析、校验、Provider、多源合并、CLI/API 逐字节等价、向导、WebUI
+widget 注册表。详见 [`docs/development.md`](docs/development.md)。
 
 ## 许可证 / License
 
-Apache-2.0. 详见 `LICENSE` / See `LICENSE`.
+Apache-2.0. 详见 [`LICENSE`](LICENSE)。
