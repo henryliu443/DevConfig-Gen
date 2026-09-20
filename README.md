@@ -18,6 +18,15 @@ DevConfig-Gen 把「结构化输入 + 映射逻辑」变成「可预测、可校
 - **确定性输出**：JSON/YAML 均保持语义插入顺序，同输入连跑两次 byte-for-byte 一致。
 - **可插拔扩展**：Provider 是唯一扩展点——领域转换、甚至 WebUI 字段渲染都可扩展。
 
+## 可插拔扩展 / Extensibility
+
+**Provider 是唯一扩展点。** 全链路只有这一个扩展缝：
+
+- **领域转换**：注册一个实现 `ConfigProvider` 的对象（`name` / `validate` / `generate`）即可接入新领域；CLI、`schema`、终端向导、Web 工作台通过注册表自动发现，**客户端代码零改动**。
+- **WebUI 字段渲染**：字段渲染查表驱动（`WidgetRegistry`，内置六种默认 Widget）。Provider 可用可选方法 `web_ui_widgets()` 返回 `{field_type: js_factory_source}`，经 `GET /api/widgets?provider=<name>` 下发并注册进同一张 Widget 表；未知类型回退 `string`，**未实现者行为完全不变**。
+
+两条硬性边界：领域实现只存在于下游 fork，绝不回填核心；Provider 契约保持稳定，不追逐上游版本。完整规范见 [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)，开发指南见 [`docs/providers.md`](docs/providers.md)，设计动机见 [`PIPELINE_PLAN.md`](PIPELINE_PLAN.md)。
+
 ## 文档 / Documentation
 
 | 主题 / Topic | 本地 / Local | 在线 / Online |

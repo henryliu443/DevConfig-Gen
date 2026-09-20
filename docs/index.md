@@ -8,6 +8,15 @@ JSON/YAML 输入文档合并、覆盖、校验后，通过 Provider 生成结构
 本页是文档总入口和能力清单。安装与第一个产物请从
 [安装与快速开始](getting-started.md) 开始。
 
+## 可插拔扩展：Provider 是唯一扩展点
+
+DevConfig-Gen 的核心是「provider 中立的引擎 + 可插拔的 Provider」。全链路**只有一个扩展点**：
+
+- **领域转换**：注册一个实现 `ConfigProvider` 的对象（`name` / `validate` / `generate`）即可接入新领域；CLI、`schema`、终端向导、Web 工作台都通过注册表发现它，**无需改动任何客户端代码**。
+- **WebUI 字段渲染**：字段渲染是查表驱动的（`WidgetRegistry`，内置 `string`/`integer`/`boolean`/`mapping`/`document`/`tree` 六种默认 Widget）。Provider 可用可选方法 `web_ui_widgets()` 声明 `{field_type: js_factory_source}`，经 `GET /api/widgets?provider=<name>` 下发并注册进同一张 Widget 表；未知类型回退 `string`，未实现者行为完全不变。
+
+两条硬性边界：**领域实现只存在于下游 fork，绝不回填核心**；**Provider 契约保持稳定，不追逐上游版本**。详见 [Provider 参考与开发](providers.md)、[架构总览](architecture.md) 与仓库根目录 [PROVIDER_STANDARD.md](https://github.com/henryliu443/DevConfig-Gen/blob/main/PROVIDER_STANDARD.md)。
+
 ## 推荐阅读顺序（CLI 优先）
 
 CLI 是主要使用面，建议按下面的顺序阅读：
