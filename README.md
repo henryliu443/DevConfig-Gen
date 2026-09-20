@@ -1,7 +1,7 @@
 # DevConfig-Gen_SingBox
 
-> **`DevConfig-Gen` 的 SingBox 领域集成分支（child / fork）。**
-> The **SingBox domain integration fork (child)** of `DevConfig-Gen`.
+> **A sing-box domain implementation built on top of DevConfig-Gen.**
+> **构建在 `DevConfig-Gen` 之上的 sing-box 领域实现（child / fork）。**
 
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -9,109 +9,139 @@
 ![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
-本仓库是父仓库 [`DevConfig-Gen`](https://github.com/henryliu443/DevConfig-Gen)
-的**子仓库（child / fork）**：中立核心与
-[`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) 由父仓库（主）拥有，本仓库（兵）只在
-其之上承载 **sing-box 领域 Provider**（`providers/singbox/`）。权威方向
-**parent → child → downstream**：核心改动先在父仓库落地，再经 `upstream` remote 合入
-本仓库，**绝不在本仓库分叉或改写中立核心**。
+**DevConfig-Gen is a deterministic configuration transformation engine built around bounded domain scopes.**
+**`DevConfig-Gen` 是一个以有限领域 Scope 为边界的确定性配置转换引擎。**
 
-> 以下为核心能力说明（继承自父仓库 `DevConfig-Gen`）。
+This repository defines one such scope: the bounded **`singbox` domain** — its domain
+model, validation rules, protocol transformations, configuration variants, and
+share-link representations. `DevConfig-Gen` supplies the neutral execution engine
+and the stable Provider contract; this repository supplies the sing-box-specific
+domain implementation.
 
-DevConfig-Gen 把「结构化输入 + 映射逻辑」变成「可预测、可校验、确定性的 JSON/YAML
-配置产物」。核心是一个极小的 Provider 契约，使生成流水线独立于任何具体格式或目标
-系统；多个输入文档可以在生成前深度合并与覆盖。CLI、Python API、终端向导、Web
-工作台全部走同一条 `engine` 流水线，产物逐字节一致。
-
-- **零副作用**：不联网、不装包、不改系统状态；仅在你显式指定 `output_dir` 时写文件。
-- **确定性输出**：JSON/YAML 均保持语义插入顺序，同输入连跑两次 byte-for-byte 一致。
-- **可插拔扩展**：Provider 是唯一扩展点——领域转换、甚至 WebUI 字段渲染都可扩展。
-
-## 可插拔扩展 / Extensibility
-
-**Provider 是唯一扩展点。** 全链路只有这一个扩展缝：
-
-- **领域转换**：注册一个实现 `ConfigProvider` 的对象（`name` / `validate` / `generate`）即可接入新领域；CLI、`schema`、终端向导、Web 工作台通过注册表自动发现，**客户端代码零改动**。
-- **WebUI 字段渲染**：字段渲染查表驱动（`WidgetRegistry`，内置六种默认 Widget）。Provider 可用可选方法 `web_ui_widgets()` 返回 `{field_type: js_factory_source}`，经 `GET /api/widgets?provider=<name>` 下发并注册进同一张 Widget 表；未知类型回退 `string`，**未实现者行为完全不变**。
-
-两条硬性边界：领域实现只存在于下游 fork，绝不回填核心；Provider 契约保持稳定，不追逐上游版本。完整规范见 [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)，开发指南见 [`docs/providers.md`](docs/providers.md)，设计动机见 [`PIPELINE_PLAN.md`](PIPELINE_PLAN.md)。
-
-## 文档 / Documentation
-
-| 主题 / Topic | 本地 / Local | 在线 / Online |
-| --- | --- | --- |
-| 快速开始 | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/docs/getting-started/) |
-| CLI 参考 | [`docs/cli.md`](docs/cli.md) | [cli](https://henryliu443.github.io/DevConfig-Gen/docs/cli/) |
-| CLI 配方 | [`docs/cli-cookbook.md`](docs/cli-cookbook.md) | [cli-cookbook](https://henryliu443.github.io/DevConfig-Gen/docs/cli-cookbook/) |
-| 输入合并与覆盖 | [`docs/input-and-merge.md`](docs/input-and-merge.md) | [input-and-merge](https://henryliu443.github.io/DevConfig-Gen/docs/input-and-merge/) |
-| 格式支持与产物 | [`docs/formats.md`](docs/formats.md) | [formats](https://henryliu443.github.io/DevConfig-Gen/docs/formats/) |
-| 校验与诊断 | [`docs/validation.md`](docs/validation.md) | [validation](https://henryliu443.github.io/DevConfig-Gen/docs/validation/) |
-| Provider 开发 | [`docs/providers.md`](docs/providers.md) | [providers](https://henryliu443.github.io/DevConfig-Gen/docs/providers/) |
-| Python API | [`docs/python-api.md`](docs/python-api.md) | [python-api](https://henryliu443.github.io/DevConfig-Gen/docs/python-api/) |
-| 交互式向导 | [`docs/wizard.md`](docs/wizard.md) | [wizard](https://henryliu443.github.io/DevConfig-Gen/docs/wizard/) |
-| Web 工作台与 HTTP API | [`docs/web-ui.md`](docs/web-ui.md) | [web-ui](https://henryliu443.github.io/DevConfig-Gen/docs/web-ui/) |
-| 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`docs/architecture.md`](docs/architecture.md) | [architecture](https://henryliu443.github.io/DevConfig-Gen/docs/architecture/) |
-| Provider 铁标准 | [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) | — |
-| 全链路 pluggable 计划 | [`PIPELINE_PLAN.md`](PIPELINE_PLAN.md) | — |
-| 开发与测试 | [`docs/development.md`](docs/development.md) | [development](https://henryliu443.github.io/DevConfig-Gen/docs/development/) |
-
-## 安装 / Install
-
-```bash
-pip install devconfig-gen          # 零外部依赖 / no external dependencies
-pip install "devconfig-gen[yaml]"  # 可选 PyYAML / optional PyYAML
-pipx install devconfig-gen         # 单命令可用 / single-command install
+```text
+DevConfig-Gen
+  neutral engine · provider contract · execution pipeline
+        │
+        ▼
+DevConfig-Gen_SingBox
+  sing-box domain · validation · transformations · server/client variants
+        │
+        ▼
+downstream configurations
 ```
 
-## 快速开始 / Quick start (3 minutes)
+**The parent owns the engine. The child owns the domain.**
+**父仓库拥有引擎，子仓库拥有领域。**
 
-```bash
-devconfig-gen generate \
-  --provider custom --input examples/custom.yaml --output-dir generated --format yaml
-devconfig-gen validate --provider custom --input examples/custom.yaml
+## What this repository is
+
+> **A Provider is a bounded domain implementation, not merely a format adapter.**
+
+A generic configuration tool can push a document through a schema. A domain
+provider does more: it carries the *knowledge* of one system — its concepts,
+relationships, constraints, variants, and artifacts — and turns a structured
+context into validated, deterministic, system-specific configuration.
+
+This repository is **not** a "universal config generator". It deliberately picks a
+scope and completes the whole chain inside it:
+
+```text
+knowledge → constraints → transformation → validation → artifacts
 ```
 
-想要引导式流程 / Prefer a guided flow:
+## Domain Scope: sing-box
 
-```bash
-devconfig-gen init --provider custom   # 终端向导 / terminal wizard
-devconfig-gen ui                       # 本地 Web 工作台 / local web studio
+This repository implements the **`singbox`** domain scope on top of DevConfig-Gen.
+
+```text
+Structured context
+        │
+        ▼
+sing-box domain model
+        │
+        ▼
+validation
+        │
+        ▼
+domain transformation
+        │
+        ▼
+server / client configurations
+        │
+        ▼
+share links
 ```
 
-## 内置 Provider / Built-in providers
+The domain itself:
 
-| Provider | 作用 / Purpose |
-| --- | --- |
-| `custom` | 无 schema 的通用文档，任意 JSON/YAML 层级可增删清空 / schema-free generic document, editable at any depth |
-| `json` | 透传 / 重新序列化任意文档 / pass-through and re-serialization |
-| `env` | 嵌套数据扁平化为 `UPPER_SNAKE_CASE` 的 `.env` / flattens nested data into `UPPER_SNAKE_CASE` `.env` |
-| `singbox` | sing-box 领域 Provider：server/client 配置 + 分享链接（仅本子仓库）/ sing-box domain provider: server/client configs + share links (child fork only) |
-
-```bash
-devconfig-gen providers
-# custom / env / json / singbox
+```text
+SingBox Domain
+├── protocols                 (anytls / tuic / hysteria2)
+├── authentication            (independent auth per protocol)
+├── TLS / Reality             (cert paths, REALITY keypair, decoy handshake)
+├── server / client variants
+├── routing                   (DNS split, route rules, geo rule sets)
+├── network / domain semantics (hosts, subdomain prefixes)
+├── credential handling       (credentials are explicit inputs)
+├── share-link representations
+└── output generation         (server / client / links)
 ```
 
-### sing-box Provider（领域实现 / domain provider）
+The domain implementation lives in:
 
-`singbox` 把一份结构化 Context 变成 `sing-box.server.{json,yaml}`、
-`sing-box.client.{json,yaml}` 与 `sing-box-links.txt`。协议细节隔离在
-`providers/singbox/plugins/`，凭据与子域前缀全部显式输入（零副作用）。完整规范见
-[`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)。
-
-```bash
-devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist
-devconfig-gen validate --provider singbox --input examples/singbox.yaml
-devconfig-gen schema --provider singbox
+```text
+src/devconfig_gen/providers/singbox/
+├── provider.py      # dispatch + assembly (no variant field names)
+├── schema.py        # context schema + structural validation
+├── models.py        # domain data structures
+├── plugins/         # one module per protocol variant
+│   ├── anytls.py
+│   ├── tuic.py
+│   └── hysteria2.py
+├── route.py         # DNS + route assembly (reads data/rules.json)
+├── links.py         # share-link aggregation
+└── data/rules.json  # embedded routing rule table
 ```
+
+## Parent / Child Architecture
+
+```text
+DevConfig-Gen                         (parent · 主)
+│  neutral engine
+│  provider contract
+│  execution pipeline
+│
+└── DevConfig-Gen_SingBox             (child · 兵)
+       │  sing-box domain knowledge
+       │  domain validation
+       │  protocol transformations
+       │  server / client variants
+       │  share-link generation
+       │
+       └── downstream (Automated-sing-box-json-generator — reference only, retiring)
+```
+
+**The parent owns the neutral engine and the provider contract; the child owns the domain.**
+
+- Authority flows **parent → child → downstream**.
+- Core changes land in the parent first, then flow down through the `upstream` remote.
+- This repository never forks or re-implements the neutral core
+  (`engine` / `formats` / `validation`); it only adds `providers/singbox/`.
+
+## Domain Model & Transformations
+
+Input context is partitioned by semantics: `network` (protocols / routing / DNS),
+`client` (client-only options), `options` (artifact options). `schema.py`
+normalizes it, `provider.py` + the plugins validate it, and the plugins
+transform each protocol into its sing-box representation.
 
 ```yaml
 network:
   domain_root: example.com
   subdomain_prefixes: {reality: a1b2c3d4, tuic: e5f6a7b8, hy2: c9d0e1f2}
-  tunnel_mode: proxy          # none | proxy | tun
+  tunnel_mode: proxy            # none | proxy | tun
   protocols:
-    - type: anytls            # anytls | tuic | hysteria2
+    - type: anytls              # anytls | tuic | hysteria2
       enabled: true
       port: 23244
       auth: {password: replace-me}
@@ -126,244 +156,157 @@ network:
       port: 7443
       auth: {password: ..., obfs_password: ...}
       tls: {cert_path: /etc/.../hy2.crt, key_path: /etc/.../hy2.key}
-  routing: {rules_source: embedded, geoip_cn: true}   # 可用 custom_rules 覆盖/补充
+  routing: {rules_source: embedded, geoip_cn: true}   # custom_rules 可覆盖/补充
+  dns: {direct_servers: [223.5.5.5, 119.29.29.29], remote_server: 1.1.1.1}
 client:
-  server_ip: 203.0.113.10     # TUN 排除路由
+  server_ip: 203.0.113.10       # TUN 排除路由
+  fingerprint: chrome
 options:
-  target: both                # server | client | both
-  format: json                # json | yaml
+  target: both                  # server | client | both
+  format: json                  # json | yaml
 ```
 
-## 命令行 / CLI
+**Isolation contract.** Every protocol's field names and structure live only in
+`plugins/<variant>.py`. An upstream sing-box change edits **one plugin file**;
+`schema.py` / `provider.py` / `route.py` and the artifact contract do not move.
+There is no version chasing.
+
+**Independent auth.** Each protocol carries its own `auth` (and variant) block —
+credentials are explicit inputs, never generated, stored, or read from the
+environment.
+
+## Generated Artifacts
+
+| Artifact | Condition | Media type |
+| --- | --- | --- |
+| `sing-box.server.{json,yaml}` | `target != client` | `application/json` / `application/yaml` |
+| `sing-box.client.{json,yaml}` | `target != server` | `application/json` / `application/yaml` |
+| `sing-box-links.txt` | `target != server` | `text/plain` |
+
+`{fmt}` follows `options.format`; the artifact set follows `options.target`.
+
+## Input Example
 
 ```bash
-# 生成 / generate
-devconfig-gen generate --provider custom --input examples/custom.yaml --output-dir dist --format yaml
-
-# 仅校验 / validate only
-devconfig-gen validate --provider custom --input examples/custom.yaml
-devconfig-gen validate --provider env --input broken.yaml --json   # 结构化诊断
-
-# 查看 schema
-devconfig-gen schema --provider custom
+devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist
+devconfig-gen validate --provider singbox --input examples/singbox.yaml
+devconfig-gen schema   --provider singbox
 ```
 
-多源合并与覆盖 / Multi-source merge and overrides (`--input` 可重复，`--set` 最后生效):
+See [`examples/singbox.yaml`](examples/singbox.yaml) for a complete context.
+
+## Validation & Determinism
+
+- **Path-aware diagnostics** — every problem is reported as a dotted path such as
+  `network.protocols.0.auth.password`, and all problems are collected in one pass.
+- **Deterministic output** — JSON/YAML preserve semantic insertion order; the same
+  input produces byte-for-byte identical artifacts across runs and across the CLI,
+  Python API, and WebUI.
+- **Zero side effects** — the provider does not read environment variables, write
+  state, or invoke subprocesses; credentials and subdomain prefixes are explicit
+  inputs.
+
+## Inherited DevConfig-Gen Engine
+
+> This repository inherits the following infrastructure from DevConfig-Gen:
+
+- deterministic generation pipeline (`engine.generate` / `generate_pipeline`)
+- structured validation and diagnostics (`diagnostic` / `ValidationError`)
+- JSON/YAML serialization (standard library + optional PyYAML, bundled subset fallback)
+- multi-source merge and dotted-path overrides (`deep_merge`, `--set`)
+- CLI and Python API
+- optional local WebUI with a table-driven widget registry
+
+It also inherits the neutral providers `custom` / `json` / `env`. This repository
+adds the domain provider `singbox`:
 
 ```bash
-devconfig-gen generate \
-  --provider custom \
-  --input configs/base.yaml \
-  --input configs/prod.json \
-  --set app.port=9090 \
-  --set app.environment=production \
-  --output-dir dist --format yaml
+devconfig-gen providers
+# custom / env / json / singbox
 ```
 
-`--set` 值自动解析 JSON 字面量（`true`→bool、`42`→int、`null`→null）。
-完整命令见 [`docs/cli.md`](docs/cli.md) 与 [`docs/cli-cookbook.md`](docs/cli-cookbook.md)。
+> **These capabilities are infrastructure. The sing-box domain remains the responsibility of this child repository.**
 
-退出码 / Exit codes: `0` 成功, `1` 校验失败, `2` 输入错误。
-
-## Web 工作台 / Configuration Studio
+## CLI / Python API
 
 ```bash
-devconfig-gen ui
-devconfig-gen ui --workspace ~/projects/my-app --no-browser
+# generate / validate / inspect
+devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist --format yaml
+devconfig-gen validate --provider singbox --input examples/singbox.yaml --json
+devconfig-gen schema   --provider singbox
 ```
-
-浏览器打开 `http://127.0.0.1:8848`。零构建、零 npm，仅用 Python 标准库
-`ThreadingHTTPServer` 提供内嵌单页应用。
-
-- 中英双语、亮/暗主题、双栏实时预览、内联校验、草稿自动保存；
-- `custom` 递归树编辑器（任意层级增删/换类型/嵌套/批量添加）+ JSON/YAML 文本模式；
-- `json` 文档拖拽上传与内联编辑器；
-- `env` 键值对表格；
-- 左上角 `☰` 汉堡侧边栏：仓库、文档站点、问题反馈、邮箱；
-- 字段渲染**查表驱动**，Provider 可用可选方法 `web_ui_widgets()` 注册自定义 Widget。
-
-安全边界：仅绑定回环、拒绝非本地 `Host`（DNS rebinding 防护）、导出沙箱限制在
-`workspace_root`。详见 [`docs/web-ui.md`](docs/web-ui.md)。
-
-## Python API
 
 ```python
-from devconfig_gen import GenerationRequest, generate, generate_from_file
+from devconfig_gen import GenerationRequest, generate, generate_pipeline
 
 result = generate(
-    "custom",
+    "singbox",
     GenerationRequest(
-        context={"document": {"app": {"name": "checkout-api", "port": 8080}}},
-        options={"format": "yaml"},
+        context={
+            "network": {
+                "domain_root": "example.com",
+                "subdomain_prefixes": {"reality": "a1b2", "tuic": "c3d4", "hy2": "e5f6"},
+                "tunnel_mode": "proxy",
+                "protocols": [
+                    {
+                        "type": "anytls",
+                        "enabled": True,
+                        "auth": {"password": "..."},
+                        "reality": {"private_key": "...", "public_key": "...", "short_id": "..."},
+                    }
+                ],
+            },
+            "options": {"target": "server"},
+        },
     ),
 )
-print(result.artifacts[0].name, result.artifacts[0].media_type)  # custom.yaml application/yaml
-
-generate_from_file("custom", "examples/custom.yaml", output_dir="generated", output_format="yaml")
-```
-
-多源输入 / Multi-source:
-
-```python
-from devconfig_gen import generate_pipeline
+print([a.name for a in result.artifacts])   # ['sing-box.server.json']
 
 generate_pipeline(
-    "custom",
-    input_path=["configs/base.yaml", "configs/prod.json"],
-    overrides={"app.port": 9090},
+    "singbox",
+    input_path="examples/singbox.yaml",
     output_dir="dist",
     output_format="yaml",
 )
 ```
 
-结构化诊断与 schema 元数据 / Diagnostics and schema metadata:
+## Documentation
 
-```python
-from devconfig_gen import diagnose_request, describe_provider
+| Topic | Local | Online |
+| --- | --- | --- |
+| 快速开始 / Getting started | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/docs/getting-started/) |
+| CLI 参考 | [`docs/cli.md`](docs/cli.md) | [cli](https://henryliu443.github.io/DevConfig-Gen/docs/cli/) |
+| 输入合并与覆盖 | [`docs/input-and-merge.md`](docs/input-and-merge.md) | [input-and-merge](https://henryliu443.github.io/DevConfig-Gen/docs/input-and-merge/) |
+| 格式支持与产物 | [`docs/formats.md`](docs/formats.md) | [formats](https://henryliu443.github.io/DevConfig-Gen/docs/formats/) |
+| 校验与诊断 | [`docs/validation.md`](docs/validation.md) | [validation](https://henryliu443.github.io/DevConfig-Gen/docs/validation/) |
+| Provider 开发 | [`docs/providers.md`](docs/providers.md) | [providers](https://henryliu443.github.io/DevConfig-Gen/docs/providers/) |
+| Python API | [`docs/python-api.md`](docs/python-api.md) | [python-api](https://henryliu443.github.io/DevConfig-Gen/docs/python-api/) |
+| Web 工作台与 HTTP API | [`docs/web-ui.md`](docs/web-ui.md) | [web-ui](https://henryliu443.github.io/DevConfig-Gen/docs/web-ui/) |
+| 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | — |
+| Provider 铁标准 | [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) | — |
 
-for d in diagnose_request("env", context={}):
-    print(d.field, "->", d.message, f"({d.severity})")
-
-for step in describe_provider("custom"):
-    print(step.id, step.title, [f.name for f in step.fields])
-```
-
-完整 API 见 [`docs/python-api.md`](docs/python-api.md)。
-
-## 编写自定义 Provider / Writing a provider
-
-只需实现 `ConfigProvider` 的 `name`、`validate`、`generate`；`diagnose` /
-`describe_schema` / `web_ui_widgets` 均为可选。
-
-```python
-from devconfig_gen import (
-    Diagnostic, GeneratedArtifact, GenerationResult,
-    ProviderField, ProviderStep, ValidationError,
-)
-
-class GreetingProvider:
-    name = "greeting"
-    steps = (
-        ProviderStep(
-            id="input",
-            title="Greeting input",
-            i18n={"zh": {"title": "问候输入", "description": "输入要问候的对象。"}},
-            fields=(
-                ProviderField(
-                    "who",
-                    type="string",
-                    required=True,
-                    title="Who",
-                    description="Who to greet.",
-                    i18n={"zh": {"title": "对象", "description": "要问候的对象。"}},
-                ),
-            ),
-        ),
-    )
-
-    def describe_schema(self):
-        return self.steps
-
-    def diagnose(self, request):
-        if not request.context.get("who"):
-            return (Diagnostic("who", "missing required field: 'who'"),)
-        return ()
-
-    def validate(self, request):
-        return tuple(item.message for item in self.diagnose(request))
-
-    def generate(self, request):
-        diagnostics = self.diagnose(request)
-        if diagnostics:
-            raise ValidationError(diagnostics)
-        return GenerationResult(
-            provider=self.name,
-            artifacts=(
-                GeneratedArtifact(
-                    name="greeting.json",
-                    content={"message": f"hello {request.context['who']}"},
-                    media_type="application/json",
-                ),
-            ),
-        )
-```
-
-注册并运行 / Register and run:
-
-```python
-from devconfig_gen import GenerationRequest, ProviderRegistry, generate
-from devconfig_gen.providers import CustomProvider, JsonProvider
-
-registry = ProviderRegistry((CustomProvider(), JsonProvider(), GreetingProvider()))
-generate("greeting", GenerationRequest(context={"who": "world"}), registry=registry)
-```
-
-转换型（rich domain）Provider 请遵循 [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)
-（零副作用、变体隔离、无版本追逐、凭据即输入）。WebUI 字段渲染可通过可选方法
-`web_ui_widgets()` 扩展，协议见 [`docs/providers.md`](docs/providers.md) 与
-[`docs/web-ui.md`](docs/web-ui.md)。
-
-## 架构 / Architecture
-
-```text
-输入文件 / 上下文  →  formats.load_*  →  Provider.diagnose  →  Provider.generate
-                                                              →  engine.generate（序列化 + 可选持久化）
-                                                              →  JSON / YAML 产物
-```
-
-`engine.py` 是唯一执行路径：`generate()` 查表、校验、生成、可选落盘；`build_request`
-负责多源合并与 `overrides`。CLI 与 `init`/`ui` 客户端只调用这些共享函数，不重复实现
-生成逻辑。详见 [`ARCHITECTURE.md`](ARCHITECTURE.md)。
-
-核心模块 / Key modules:
-
-| 模块 | 职责 |
-| --- | --- |
-| `formats` | JSON/YAML 加载导出、格式检测、媒体类型、`deep_merge`、`coerce_scalar` |
-| `validation` | 路径感知校验辅助（一次收集全部问题） |
-| `models` | `GenerationRequest` / `GenerationResult` / `Diagnostic` / `ProviderField` / `ProviderStep` / `ConfigProvider` / `WebUIWidgets` |
-| `registry` | `ProviderRegistry` 与内置 Provider |
-| `engine` | 编排、诊断、schema、持久化 |
-| `providers` | `custom` / `json` / `env` / `singbox`（领域 Provider 见 `providers/singbox/`） |
-| `interactive` | `init` 终端向导（延迟加载） |
-| `web_ui` | `ui` 本地工作台（延迟加载） |
-| `cli` | 仅参数解析 |
-
-## JSON/YAML 支持与限制
-
-JSON 由标准库处理；YAML 在安装 PyYAML 时使用 PyYAML，否则使用内置子集解析器
-（零依赖）。支持缩进映射/序列、标量、引号与裸字符串、流式集合 `[a, b] {x: 1}`、
-注释空行、块标量 `|` `>` 及 `-`/`+` chomping。不支持锚点别名、自定义标签、合并键
-`<<`、多文档 `---`。需要完整 YAML 行为请安装 PyYAML。详见
-[`docs/formats.md`](docs/formats.md)。
-
-## 仓库关系 / Repo relationship
-
-- 本仓库是 **子仓库（child / fork）**：`DevConfig-Gen_SingBox`，私有集成分支。
-- **父仓库（parent / upstream）**：`DevConfig-Gen`
-  （https://github.com/henryliu443/DevConfig-Gen），承载中立核心与 Provider 标准。
-- 领域 Provider（如 `providers/singbox/`）只存在于**本仓库**，**不回填父仓库**。
-
-权威方向为 **parent → child → downstream**。核心改动先在父仓库落地，再通过
-`upstream` remote 合入本仓库；不得分叉或改写中立核心。约定见 [`AGENTS.md`](AGENTS.md)。
-
-## 开发与测试 / Development
+## Development & Testing
 
 ```bash
 pip install -e ".[yaml]"
 PYTHONPATH=src python3 -m unittest discover -s tests -v
+
+# repeatable smoke: suite + API/CLI/WebUI byte-parity + frontend
+python3 scripts/smoke_rounds.py 8
 ```
 
-构建文档站 / Build the docs site:
+## Repository Relationship
 
-```bash
-pip install -e ".[docs]"
-mkdocs build --strict
-```
+- This repository is the **child (子仓库 / fork)**: `DevConfig-Gen_SingBox`.
+- The **parent (父仓库 / upstream)** is
+  [`DevConfig-Gen`](https://github.com/henryliu443/DevConfig-Gen), which owns the
+  neutral core and [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md).
+- Domain providers (such as `providers/singbox/`) live **here**, never in the parent.
 
-测试覆盖格式解析、校验、Provider、多源合并、CLI/API 逐字节等价、向导、WebUI
-widget 注册表。详见 [`docs/development.md`](docs/development.md)。
+Authority flows **parent → child → downstream**. Core changes land in the parent
+first and flow down via the `upstream` remote; the neutral core is never forked or
+rewritten here.
 
-## 许可证 / License
+## License
 
-Apache-2.0. 详见 [`LICENSE`](LICENSE)。
+Apache-2.0. See [`LICENSE`](LICENSE).

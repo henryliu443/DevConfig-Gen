@@ -22,10 +22,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- The README now presents the **child** identity (`DevConfig-Gen_SingBox`) at
-  the top instead of inheriting the parent's title, stating that the parent owns
-  the neutral core and `PROVIDER_STANDARD.md` while this fork only adds the
-  sing-box domain provider.
+- The README is repositioned around **bounded domain scopes**: it leads with the
+  `DevConfig-Gen_SingBox` child identity and the `singbox` domain (domain model,
+  validation, transformations, variants, share links), and demotes the inherited
+  engine capabilities to an "Inherited DevConfig-Gen Engine" section. The parent
+  owns the neutral engine and provider contract; the child owns the domain.
 - `default_registry` now registers `singbox` alongside `custom`, `json`, and
   `env`; `devconfig-gen providers` lists four providers.
 
