@@ -1,8 +1,7 @@
 # 格式支持与产物
 
 DevConfig-Gen 的输入格式是 JSON 和 YAML；产物格式是 JSON、YAML 或纯文本
-（内置 `env` Provider 输出 `.env`）。核心引擎不定义其他格式，Web 工作台中的
-XML 按钮只是预留入口，点击会提示“即将支持”，不会产生 XML 输出。
+（内置 `env` Provider 输出 `.env`）。核心引擎不定义其他格式。
 
 ## 格式标识与别名
 

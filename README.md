@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)
-![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-136%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
 **`DevConfig-Gen` 是一个以有限领域 Scope 为边界的确定性配置转换引擎。**
@@ -196,7 +196,7 @@ devconfig-gen schema   --provider singbox
 - **路径感知诊断**：每个问题都以 dotted path 报告，例如
   `network.protocols.0.auth.password`，并一次性收集全部问题。
 - **确定性输出**：JSON/YAML 均保持语义插入顺序；同一输入在多次运行、以及
-  CLI / Python API / WebUI 三端都产出 byte-for-byte 一致的产物。
+  CLI 与 Python API 两端都产出 byte-for-byte 一致的产物。
 - **零副作用**：Provider 不读环境变量、不写 state、不调子进程；凭据与子域前缀
   全部显式输入。
 
@@ -209,7 +209,6 @@ devconfig-gen schema   --provider singbox
 - JSON/YAML 序列化（标准库 + 可选 PyYAML，内置子集解析器兜底）
 - 多源合并与 dotted-path 覆盖（`deep_merge`、`--set`）
 - CLI 与 Python API
-- 可选的本地 WebUI（查表驱动的 widget registry）
 
 同时也继承中立的 Provider `custom` / `json` / `env`。本仓库在其之上新增领域
 Provider `singbox`：
@@ -276,7 +275,6 @@ generate_pipeline(
 | 校验与诊断 | [`docs/validation.md`](docs/validation.md) | [validation](https://henryliu443.github.io/DevConfig-Gen/docs/validation/) |
 | Provider 开发 | [`docs/providers.md`](docs/providers.md) | [providers](https://henryliu443.github.io/DevConfig-Gen/docs/providers/) |
 | Python API | [`docs/python-api.md`](docs/python-api.md) | [python-api](https://henryliu443.github.io/DevConfig-Gen/docs/python-api/) |
-| Web 工作台与 HTTP API | [`docs/web-ui.md`](docs/web-ui.md) | [web-ui](https://henryliu443.github.io/DevConfig-Gen/docs/web-ui/) |
 | 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | — |
 | Provider 铁标准 | [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) | — |
 
@@ -286,7 +284,7 @@ generate_pipeline(
 pip install -e ".[yaml]"
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 
-# 可重复烟雾：全量单测 + API/CLI/WebUI 逐字节一致 + 前端
+# 可重复烟雾：全量单测 + API/CLI 逐字节一致
 python3 scripts/smoke_rounds.py 8
 ```
 

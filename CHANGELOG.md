@@ -20,6 +20,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `network.routing`.
 - `examples/singbox.yaml` sample input.
 
+### Removed
+
+- The interactive terminal wizard (`interactive.py`, `devconfig-gen init`) and
+  the local Web studio (`web_ui.py`, `devconfig-gen ui`) are removed from this
+  child fork, along with their tests and docs. The supported surface is now the
+  stable **CLI** (`providers` / `schema` / `generate` / `validate`) and the
+  **Python API** only. The `WebUIWidgets` protocol and the `web_ui_widgets()`
+  hook are gone with them.
+- `docs/wizard.md` and `docs/web-ui.md`, and their navigation/references.
+
 ### Changed
 
 - The README is repositioned around **bounded domain scopes**: it leads with the

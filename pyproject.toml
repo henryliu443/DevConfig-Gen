@@ -31,4 +31,4 @@ devconfig-gen = "devconfig_gen.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-devconfig_gen = ["py.typed"]
+devconfig_gen = ["py.typed", "providers/singbox/data/*.json"]

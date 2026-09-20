@@ -141,10 +141,10 @@
     <section>
       <h2 data-i18n="hFeatures">Highlights</h2>
       <ul class="features">
-        <li data-i18n="f1">Three built-in providers: custom, json, env</li>
+        <li data-i18n="f1">Built-in providers: custom, json, env, plus the sing-box domain provider</li>
         <li data-i18n-html="f2">Multi-source deep merge &amp; <code>--set</code> overrides</li>
         <li data-i18n="f3">Precise, path-aware validation diagnostics</li>
-        <li data-i18n="f4">CLI, terminal wizard, and local Web studio</li>
+        <li data-i18n="f4">Stable CLI and Python API</li>
         <li data-i18n-html="f5">Deterministic JSON / YAML / <code>.env</code> output</li>
         <li data-i18n="f6">Zero runtime dependencies</li>
         <li data-i18n="f7">Pluggable by design: the Provider is the only extension point</li>
@@ -156,10 +156,8 @@
       <div class="prose">
         <p data-i18n="extend1">
           One extension point: the Provider. Register a provider to add a domain transformation, and
-          the CLI, terminal wizard, and Web studio pick it up with no code changes. Even WebUI field
-          rendering is table-driven — a provider can ship custom widgets through the optional
-          <code>web_ui_widgets()</code> method, served at <code>GET /api/widgets</code> and registered
-          into the same widget table.
+          the CLI and Python API pick it up with no code changes. Domain-specific providers live in
+          downstream forks — never in the core.
         </p>
         <p data-i18n="extend2">
           Providers that do not implement the optional hooks behave exactly as before: the core stays
@@ -172,7 +170,7 @@
       <h2 data-i18n="hStack">Stack</h2>
       <div class="chips">
         <span class="chip">Python 3.8+</span>
-        <span class="chip">CLI · Wizard · Web UI</span>
+        <span class="chip">CLI · Python API · sing-box</span>
         <span class="chip">JSON / YAML</span>
         <span class="chip">MkDocs</span>
         <span class="chip" data-i18n="chipPluggable">Pluggable Providers</span>
@@ -201,15 +199,15 @@
         hAbout: "About",
         about: "DevConfig-Gen merges multiple JSON/YAML inputs, applies overrides, validates every field with precise path diagnostics, and produces deterministic JSON, YAML, or .env artifacts through a small provider contract — with no network or system side effects.",
         hFeatures: "Highlights",
-        f1: "Three built-in providers: custom, json, env",
+        f1: "Built-in providers: custom, json, env, plus the sing-box domain provider",
         f2: 'Multi-source deep merge &amp; <code>--set</code> overrides',
         f3: "Precise, path-aware validation diagnostics",
-        f4: "CLI, terminal wizard, and local Web studio",
+        f4: "Stable CLI and Python API",
         f5: 'Deterministic JSON / YAML / <code>.env</code> output',
         f6: "Zero runtime dependencies",
         f7: "Pluggable by design: the Provider is the only extension point",
         hExtend: "Extensibility",
-        extend1: 'One extension point: the Provider. Register a provider to add a domain transformation, and the CLI, terminal wizard, and Web studio pick it up with no code changes. Even WebUI field rendering is table-driven — a provider can ship custom widgets through the optional <code>web_ui_widgets()</code> method, served at <code>GET /api/widgets</code> and registered into the same widget table.',
+        extend1: 'One extension point: the Provider. Register a provider to add a domain transformation, and the CLI and Python API pick it up with no code changes. Domain-specific providers live in downstream forks — never in the core.',
         extend2: "Providers that do not implement the optional hooks behave exactly as before: the core stays provider-neutral, and domain-specific providers live in downstream forks — never in the core.",
         chipPluggable: "Pluggable Providers",
         hStack: "Stack"
@@ -223,15 +221,15 @@
         hAbout: "简介",
         about: "DevConfig-Gen 会合并多个 JSON/YAML 输入、应用覆盖、逐字段校验并给出精确的路径诊断，再通过一个轻量的 Provider 契约输出确定性的 JSON、YAML 或 .env 产物——不访问网络、不修改系统。",
         hFeatures: "亮点",
-        f1: "内置三个 Provider：custom、json、env",
+        f1: "内置 Provider：custom、json、env，外加 sing-box 领域 Provider",
         f2: '多源深度合并与 <code>--set</code> 覆盖',
         f3: "精确到字段路径的校验诊断",
-        f4: "CLI、终端向导与本地 Web 工作台",
+        f4: "稳定的 CLI 与 Python API",
         f5: '确定性的 JSON / YAML / <code>.env</code> 输出',
         f6: "零运行时依赖",
         f7: "天生可插拔：Provider 是唯一扩展点",
         hExtend: "扩展点",
-        extend1: '只有一个扩展点：Provider。注册一个 Provider 就能加入一种领域转换，CLI、终端向导与 Web 工作台无需改动即可识别。连 WebUI 的字段渲染也是查表驱动的——Provider 可以通过可选的 <code>web_ui_widgets()</code> 方法自带自定义 Widget，经 <code>GET /api/widgets</code> 下发并注册进同一张 Widget 表。',
+        extend1: '只有一个扩展点：Provider。注册一个 Provider 就能加入一种领域转换，CLI 与 Python API 无需改动即可识别。领域专属 Provider 只存在于下游 fork，绝不进入核心。',
         extend2: "未实现可选钩子的 Provider 行为完全不变：核心始终保持 Provider 中立，领域专属 Provider 只存在于下游 fork，绝不进入核心。",
         chipPluggable: "可插拔 Provider",
         hStack: "技术栈"
@@ -245,15 +243,15 @@
         hAbout: "簡介",
         about: "DevConfig-Gen 會合併多個 JSON/YAML 輸入、套用覆寫、逐個欄位驗證，再畀出準到路徑嘅診斷，然後透過一個輕量嘅 Provider 契約輸出穩定嘅 JSON、YAML 或者 .env 產物——唔連網、唔郁你部機。",
         hFeatures: "亮點",
-        f1: "內建三個 Provider：custom、json、env",
+        f1: "內建 Provider：custom、json、env，加埋 sing-box 領域 Provider",
         f2: '多來源深度合併同 <code>--set</code> 覆寫',
         f3: "準到欄位路徑嘅驗證診斷",
-        f4: "CLI、終端精靈同本地 Web 工作台",
+        f4: "穩定嘅 CLI 同 Python API",
         f5: '穩定嘅 JSON / YAML / <code>.env</code> 輸出',
         f6: "零執行時依賴",
         f7: "天生可插拔：Provider 係唯一擴展點",
         hExtend: "擴展點",
-        extend1: '淨係得一個擴展點：Provider。註冊一個 Provider 就加到一種領域轉換，CLI、終端精靈同 Web 工作台唔使改都認得。連 WebUI 嘅欄位渲染都係查表驅動——Provider 可以透過可選嘅 <code>web_ui_widgets()</code> 方法自帶自訂 Widget，經 <code>GET /api/widgets</code> 派落嚟並註冊入同一張 Widget 表。',
+        extend1: '淨係得一個擴展點：Provider。註冊一個 Provider 就加到一種領域轉換，CLI 同 Python API 唔使改都認得。領域專屬 Provider 淨係喺下游 fork 度，唔會入核心。',
         extend2: "未實現可選鉤子嘅 Provider 行為完全唔變：核心一直保持 Provider 中立，領域專屬 Provider 淨係喺下游 fork 度，唔會入核心。",
         chipPluggable: "可插拔 Provider",
         hStack: "技術棧"
