@@ -1,4 +1,7 @@
-# DevConfig-Gen
+# DevConfig-Gen_SingBox
+
+> **`DevConfig-Gen` 的 SingBox 领域集成分支（child / fork）。**
+> The **SingBox domain integration fork (child)** of `DevConfig-Gen`.
 
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -6,8 +9,14 @@
 ![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
-> Provider 驱动的结构化配置生成与校验引擎。
-> A provider-driven engine for generating and validating structured configuration.
+本仓库是父仓库 [`DevConfig-Gen`](https://github.com/henryliu443/DevConfig-Gen)
+的**子仓库（child / fork）**：中立核心与
+[`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) 由父仓库（主）拥有，本仓库（兵）只在
+其之上承载 **sing-box 领域 Provider**（`providers/singbox/`）。权威方向
+**parent → child → downstream**：核心改动先在父仓库落地，再经 `upstream` remote 合入
+本仓库，**绝不在本仓库分叉或改写中立核心**。
+
+> 以下为核心能力说明（继承自父仓库 `DevConfig-Gen`）。
 
 DevConfig-Gen 把「结构化输入 + 映射逻辑」变成「可预测、可校验、确定性的 JSON/YAML
 配置产物」。核心是一个极小的 Provider 契约，使生成流水线独立于任何具体格式或目标
