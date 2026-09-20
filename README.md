@@ -9,131 +9,129 @@
 ![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
-**DevConfig-Gen is a deterministic configuration transformation engine built around bounded domain scopes.**
 **`DevConfig-Gen` 是一个以有限领域 Scope 为边界的确定性配置转换引擎。**
+**DevConfig-Gen is a deterministic configuration transformation engine built around bounded domain scopes.**
 
-This repository defines one such scope: the bounded **`singbox` domain** — its domain
-model, validation rules, protocol transformations, configuration variants, and
-share-link representations. `DevConfig-Gen` supplies the neutral execution engine
-and the stable Provider contract; this repository supplies the sing-box-specific
-domain implementation.
+本仓库定义其中一个 scope：有限的 **`singbox` 领域** —— 它的领域模型、校验规则、
+协议转换、配置变体与分享链接表示。`DevConfig-Gen` 提供中立的执行引擎与稳定的
+Provider 契约；本仓库提供 sing-box 专属的领域实现。
 
 ```text
 DevConfig-Gen
-  neutral engine · provider contract · execution pipeline
+  中立引擎 · Provider 契约 · 执行流水线
         │
         ▼
 DevConfig-Gen_SingBox
-  sing-box domain · validation · transformations · server/client variants
+  sing-box 领域 · 校验 · 转换 · server/client 变体
         │
         ▼
-downstream configurations
+下游配置 / downstream configurations
 ```
 
-**The parent owns the engine. The child owns the domain.**
 **父仓库拥有引擎，子仓库拥有领域。**
+**The parent owns the engine. The child owns the domain.**
 
-## What this repository is
+## 本仓库是什么 / What this repository is
 
+> **Provider 是有限领域的实现，而不只是格式适配器。**
 > **A Provider is a bounded domain implementation, not merely a format adapter.**
 
-A generic configuration tool can push a document through a schema. A domain
-provider does more: it carries the *knowledge* of one system — its concepts,
-relationships, constraints, variants, and artifacts — and turns a structured
-context into validated, deterministic, system-specific configuration.
+通用配置工具可以把一份文档过一遍 schema。领域 Provider 做得更多：它承载某一个
+系统的**知识**——概念、关系、约束、变体与产物——并把结构化 context 转换成经过
+校验、确定性的、系统专属的配置。
 
-This repository is **not** a "universal config generator". It deliberately picks a
-scope and completes the whole chain inside it:
+本仓库**不是**「万能配置生成器」。它刻意选择一个 scope，并在其中把整条链路做完整：
 
 ```text
+知识 → 约束 → 转换 → 校验 → 产物
 knowledge → constraints → transformation → validation → artifacts
 ```
 
-## Domain Scope: sing-box
+## 领域 Scope：sing-box / Domain Scope: sing-box
 
-This repository implements the **`singbox`** domain scope on top of DevConfig-Gen.
+本仓库在 DevConfig-Gen 之上实现 **`singbox`** 领域 scope。
 
 ```text
-Structured context
+结构化 context
         │
         ▼
-sing-box domain model
+sing-box 领域模型
         │
         ▼
-validation
+校验 validation
         │
         ▼
-domain transformation
+领域转换 transformation
         │
         ▼
-server / client configurations
+server / client 配置
         │
         ▼
-share links
+分享链接 share links
 ```
 
-The domain itself:
+领域本身：
 
 ```text
 SingBox Domain
-├── protocols                 (anytls / tuic / hysteria2)
-├── authentication            (independent auth per protocol)
-├── TLS / Reality             (cert paths, REALITY keypair, decoy handshake)
-├── server / client variants
-├── routing                   (DNS split, route rules, geo rule sets)
-├── network / domain semantics (hosts, subdomain prefixes)
-├── credential handling       (credentials are explicit inputs)
-├── share-link representations
-└── output generation         (server / client / links)
+├── 协议 protocols           (anytls / tuic / hysteria2)
+├── 认证 authentication      (每个协议独立的 auth)
+├── TLS / Reality            (证书路径、REALITY 密钥对、decoy 握手)
+├── server / client 变体
+├── 路由 routing             (DNS 分流、route 规则、geo rule set)
+├── 网络/域名语义            (hosts、子域前缀)
+├── 凭据处理                 (凭据即显式输入)
+├── 分享链接表示
+└── 产物生成                 (server / client / links)
 ```
 
-The domain implementation lives in:
+领域实现位于：
 
 ```text
 src/devconfig_gen/providers/singbox/
-├── provider.py      # dispatch + assembly (no variant field names)
-├── schema.py        # context schema + structural validation
-├── models.py        # domain data structures
-├── plugins/         # one module per protocol variant
+├── provider.py      # 分派 + 组装（不含任何变体字段名）
+├── schema.py        # Context Schema + 结构校验
+├── models.py        # 领域数据结构
+├── plugins/         # 每个协议变体一个模块
 │   ├── anytls.py
 │   ├── tuic.py
 │   └── hysteria2.py
-├── route.py         # DNS + route assembly (reads data/rules.json)
-├── links.py         # share-link aggregation
-└── data/rules.json  # embedded routing rule table
+├── route.py         # DNS + Route 组装（读 data/rules.json）
+├── links.py         # 分享链接聚合
+└── data/rules.json  # 内嵌路由规则表
 ```
 
-## Parent / Child Architecture
+## 父/子架构 / Parent / Child Architecture
 
 ```text
-DevConfig-Gen                         (parent · 主)
-│  neutral engine
-│  provider contract
-│  execution pipeline
+DevConfig-Gen                         (父仓库 · 主)
+│  中立引擎
+│  Provider 契约
+│  执行流水线
 │
-└── DevConfig-Gen_SingBox             (child · 兵)
-       │  sing-box domain knowledge
-       │  domain validation
-       │  protocol transformations
-       │  server / client variants
-       │  share-link generation
+└── DevConfig-Gen_SingBox             (子仓库 · 兵)
+       │  sing-box 领域知识
+       │  领域校验
+       │  协议转换
+       │  server / client 变体
+       │  分享链接生成
        │
-       └── downstream (Automated-sing-box-json-generator — reference only, retiring)
+       └── downstream (Automated-sing-box-json-generator —— 只读参考，退役中)
 ```
 
+**父仓库拥有中立引擎与 Provider 契约；子仓库拥有领域。**
 **The parent owns the neutral engine and the provider contract; the child owns the domain.**
 
-- Authority flows **parent → child → downstream**.
-- Core changes land in the parent first, then flow down through the `upstream` remote.
-- This repository never forks or re-implements the neutral core
-  (`engine` / `formats` / `validation`); it only adds `providers/singbox/`.
+- 权威方向为 **parent → child → downstream**。
+- 核心改动先在父仓库落地，再通过 `upstream` remote 合入本仓库。
+- 本仓库**绝不分叉或重写中立核心**（`engine` / `formats` / `validation`），只新增
+  `providers/singbox/`。
 
-## Domain Model & Transformations
+## 领域模型与转换 / Domain Model & Transformations
 
-Input context is partitioned by semantics: `network` (protocols / routing / DNS),
-`client` (client-only options), `options` (artifact options). `schema.py`
-normalizes it, `provider.py` + the plugins validate it, and the plugins
-transform each protocol into its sing-box representation.
+输入 context 按语义分区：`network`（协议 / 路由 / DNS）、`client`（客户端特有）、
+`options`（产物选项）。`schema.py` 负责归一化，`provider.py` 与各 plugin 负责校验，
+plugin 负责把每个协议转换为它在 sing-box 中的表示。
 
 ```yaml
 network:
@@ -166,26 +164,24 @@ options:
   format: json                  # json | yaml
 ```
 
-**Isolation contract.** Every protocol's field names and structure live only in
-`plugins/<variant>.py`. An upstream sing-box change edits **one plugin file**;
-`schema.py` / `provider.py` / `route.py` and the artifact contract do not move.
-There is no version chasing.
+**隔离契约。** 每个协议的字段名与结构只存在于 `plugins/<variant>.py`。上游 sing-box
+变化时只改**一个 plugin 文件**；`schema.py` / `provider.py` / `route.py` 与产物契约
+保持不动，不做版本追逐。
 
-**Independent auth.** Each protocol carries its own `auth` (and variant) block —
-credentials are explicit inputs, never generated, stored, or read from the
-environment.
+**独立 auth。** 每个协议各自携带 `auth`（及变体）块——凭据全部是显式输入，不生成、
+不存储、不读环境变量。
 
-## Generated Artifacts
+## 生成产物 / Generated Artifacts
 
-| Artifact | Condition | Media type |
+| 产物 | 条件 | media type |
 | --- | --- | --- |
 | `sing-box.server.{json,yaml}` | `target != client` | `application/json` / `application/yaml` |
 | `sing-box.client.{json,yaml}` | `target != server` | `application/json` / `application/yaml` |
 | `sing-box-links.txt` | `target != server` | `text/plain` |
 
-`{fmt}` follows `options.format`; the artifact set follows `options.target`.
+`{fmt}` 由 `options.format` 决定，产物集合由 `options.target` 决定。
 
-## Input Example
+## 输入示例 / Input Example
 
 ```bash
 devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist
@@ -193,44 +189,43 @@ devconfig-gen validate --provider singbox --input examples/singbox.yaml
 devconfig-gen schema   --provider singbox
 ```
 
-See [`examples/singbox.yaml`](examples/singbox.yaml) for a complete context.
+完整 context 见 [`examples/singbox.yaml`](examples/singbox.yaml)。
 
-## Validation & Determinism
+## 校验与确定性 / Validation & Determinism
 
-- **Path-aware diagnostics** — every problem is reported as a dotted path such as
-  `network.protocols.0.auth.password`, and all problems are collected in one pass.
-- **Deterministic output** — JSON/YAML preserve semantic insertion order; the same
-  input produces byte-for-byte identical artifacts across runs and across the CLI,
-  Python API, and WebUI.
-- **Zero side effects** — the provider does not read environment variables, write
-  state, or invoke subprocesses; credentials and subdomain prefixes are explicit
-  inputs.
+- **路径感知诊断**：每个问题都以 dotted path 报告，例如
+  `network.protocols.0.auth.password`，并一次性收集全部问题。
+- **确定性输出**：JSON/YAML 均保持语义插入顺序；同一输入在多次运行、以及
+  CLI / Python API / WebUI 三端都产出 byte-for-byte 一致的产物。
+- **零副作用**：Provider 不读环境变量、不写 state、不调子进程；凭据与子域前缀
+  全部显式输入。
 
-## Inherited DevConfig-Gen Engine
+## 继承自 DevConfig-Gen 的引擎 / Inherited DevConfig-Gen Engine
 
-> This repository inherits the following infrastructure from DevConfig-Gen:
+> 本仓库从 DevConfig-Gen 继承以下基础设施：
 
-- deterministic generation pipeline (`engine.generate` / `generate_pipeline`)
-- structured validation and diagnostics (`diagnostic` / `ValidationError`)
-- JSON/YAML serialization (standard library + optional PyYAML, bundled subset fallback)
-- multi-source merge and dotted-path overrides (`deep_merge`, `--set`)
-- CLI and Python API
-- optional local WebUI with a table-driven widget registry
+- 确定性生成流水线（`engine.generate` / `generate_pipeline`）
+- 结构化校验与诊断（`Diagnostic` / `ValidationError`）
+- JSON/YAML 序列化（标准库 + 可选 PyYAML，内置子集解析器兜底）
+- 多源合并与 dotted-path 覆盖（`deep_merge`、`--set`）
+- CLI 与 Python API
+- 可选的本地 WebUI（查表驱动的 widget registry）
 
-It also inherits the neutral providers `custom` / `json` / `env`. This repository
-adds the domain provider `singbox`:
+同时也继承中立的 Provider `custom` / `json` / `env`。本仓库在其之上新增领域
+Provider `singbox`：
 
 ```bash
 devconfig-gen providers
 # custom / env / json / singbox
 ```
 
+> **这些能力是基础设施。sing-box 领域始终由本子仓库负责。**
 > **These capabilities are infrastructure. The sing-box domain remains the responsibility of this child repository.**
 
-## CLI / Python API
+## 命令行与 Python API / CLI & Python API
 
 ```bash
-# generate / validate / inspect
+# 生成 / 校验 / 查看 schema
 devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist --format yaml
 devconfig-gen validate --provider singbox --input examples/singbox.yaml --json
 devconfig-gen schema   --provider singbox
@@ -270,11 +265,11 @@ generate_pipeline(
 )
 ```
 
-## Documentation
+## 文档 / Documentation
 
-| Topic | Local | Online |
+| 主题 | 本地 | 在线 |
 | --- | --- | --- |
-| 快速开始 / Getting started | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/docs/getting-started/) |
+| 快速开始 | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/docs/getting-started/) |
 | CLI 参考 | [`docs/cli.md`](docs/cli.md) | [cli](https://henryliu443.github.io/DevConfig-Gen/docs/cli/) |
 | 输入合并与覆盖 | [`docs/input-and-merge.md`](docs/input-and-merge.md) | [input-and-merge](https://henryliu443.github.io/DevConfig-Gen/docs/input-and-merge/) |
 | 格式支持与产物 | [`docs/formats.md`](docs/formats.md) | [formats](https://henryliu443.github.io/DevConfig-Gen/docs/formats/) |
@@ -285,28 +280,27 @@ generate_pipeline(
 | 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | — |
 | Provider 铁标准 | [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) | — |
 
-## Development & Testing
+## 开发与测试 / Development & Testing
 
 ```bash
 pip install -e ".[yaml]"
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 
-# repeatable smoke: suite + API/CLI/WebUI byte-parity + frontend
+# 可重复烟雾：全量单测 + API/CLI/WebUI 逐字节一致 + 前端
 python3 scripts/smoke_rounds.py 8
 ```
 
-## Repository Relationship
+## 仓库关系 / Repository Relationship
 
-- This repository is the **child (子仓库 / fork)**: `DevConfig-Gen_SingBox`.
-- The **parent (父仓库 / upstream)** is
-  [`DevConfig-Gen`](https://github.com/henryliu443/DevConfig-Gen), which owns the
-  neutral core and [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md).
-- Domain providers (such as `providers/singbox/`) live **here**, never in the parent.
+- 本仓库是 **子仓库（child / fork）**：`DevConfig-Gen_SingBox`。
+- **父仓库（parent / upstream）** 为
+  [`DevConfig-Gen`](https://github.com/henryliu443/DevConfig-Gen)，拥有中立核心与
+  [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)。
+- 领域 Provider（如 `providers/singbox/`）只存在于**本仓库**，**不回填父仓库**。
 
-Authority flows **parent → child → downstream**. Core changes land in the parent
-first and flow down via the `upstream` remote; the neutral core is never forked or
-rewritten here.
+权威方向为 **parent → child → downstream**。核心改动先在父仓库落地，再经 `upstream`
+remote 合入本仓库；不得分叉或改写中立核心。
 
-## License
+## 许可证 / License
 
-Apache-2.0. See [`LICENSE`](LICENSE).
+Apache-2.0。详见 [`LICENSE`](LICENSE)。
