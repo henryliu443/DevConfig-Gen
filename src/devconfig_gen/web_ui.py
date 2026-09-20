@@ -13,7 +13,7 @@ import webbrowser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
 from . import formats
 from .engine import describe_provider, diagnose_request, generate
@@ -88,7 +88,7 @@ _HTML_PAGE = """<!DOCTYPE html>
       backdrop-filter: saturate(180%) blur(20px);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 1px solid var(--card-border);
-      padding: 0.75rem 1.5rem;
+      padding: 0.85rem 1.75rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -123,8 +123,8 @@ _HTML_PAGE = """<!DOCTYPE html>
       max-width: 1600px;
       width: 100%;
       margin: 0 auto;
-      padding: 1.5rem;
-      gap: 1.5rem;
+      padding: 1.75rem;
+      gap: 1.75rem;
     }
 
     .wizard-panel {
@@ -140,9 +140,9 @@ _HTML_PAGE = """<!DOCTYPE html>
       flex-direction: column;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
     }
 
     /* Steps Bar */
@@ -151,15 +151,15 @@ _HTML_PAGE = """<!DOCTYPE html>
       gap: 0.5rem;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 0.5rem;
+      border-radius: 14px;
+      padding: 0.45rem;
     }
     .step-btn {
       flex: 1;
-      padding: 0.6rem 0.8rem;
+      padding: 0.55rem 0.75rem;
       background: transparent;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-family: inherit;
       font-size: 0.85rem;
       font-weight: 500;
@@ -184,21 +184,22 @@ _HTML_PAGE = """<!DOCTYPE html>
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
     }
 
     .card-title {
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 600;
-      margin-bottom: 0.25rem;
-      letter-spacing: -0.01em;
+      margin-bottom: 0.3rem;
+      letter-spacing: -0.02em;
     }
     .card-desc {
       color: var(--text-muted);
       font-size: 0.9rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      line-height: 1.55;
     }
 
     /* Form Fields */
@@ -231,12 +232,12 @@ _HTML_PAGE = """<!DOCTYPE html>
 
     input[type="text"], input[type="number"], select, textarea {
       width: 100%;
-      padding: 0.65rem 0.85rem;
+      padding: 0.65rem 0.9rem;
       font-family: inherit;
       font-size: 0.9rem;
       background: var(--input-bg);
       border: 1px solid var(--input-border);
-      border-radius: 8px;
+      border-radius: 10px;
       color: var(--text);
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
       outline: none;
@@ -262,8 +263,8 @@ _HTML_PAGE = """<!DOCTYPE html>
 
     /* Buttons */
     .btn {
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
       font-family: inherit;
       font-size: 0.85rem;
       font-weight: 600;
@@ -422,10 +423,11 @@ _HTML_PAGE = """<!DOCTYPE html>
     /* Recursive Tree Editor */
     .tree-root {
       border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 0.6rem 0.75rem;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
       background: var(--card-bg);
       overflow-x: auto;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
     }
     .tree-children {
       border-left: 2px solid var(--card-border);
@@ -464,15 +466,18 @@ _HTML_PAGE = """<!DOCTYPE html>
       font-size: 0.8rem;
     }
     .tree-btn {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.72rem;
-      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      border-radius: 8px;
       border: 1px solid var(--card-border);
       background: var(--input-bg);
       color: var(--text);
       cursor: pointer;
       white-space: nowrap;
+      transition: background 0.12s ease, transform 0.08s ease;
     }
+    .tree-btn:hover { background: rgba(128, 128, 128, 0.08); }
+    .tree-btn:active { transform: scale(0.97); }
     .tree-btn.remove {
       color: var(--danger);
     }
@@ -498,6 +503,29 @@ _HTML_PAGE = """<!DOCTYPE html>
     .tree-bulk .tree-btn {
       flex: 0 0 auto;
     }
+    .tree-bulk-bar {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      gap: 0.4rem;
+      padding: 0.4rem;
+      background: rgba(128, 128, 128, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+    }
+    .tree-bulk-bar input {
+      flex: 1 1 auto;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text);
+    }
+    .tree-bulk-bar input:focus {
+      outline: none;
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.12);
+    }
     .tree-null {
       font-size: 0.8rem;
       color: var(--text-muted);
@@ -507,10 +535,11 @@ _HTML_PAGE = """<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
+      padding: 0 0.1rem;
     }
     .tree-toolbar-title {
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: var(--text);
     }
@@ -581,6 +610,102 @@ _HTML_PAGE = """<!DOCTYPE html>
       cursor: pointer;
     }
 
+    /* Sidebar / quick links */
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hamburger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.12s ease;
+    }
+    .hamburger:hover { background: rgba(128, 128, 128, 0.12); }
+    .hamburger:active { transform: scale(0.96); }
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 900;
+    }
+    .sidebar-backdrop.open { opacity: 1; visibility: visible; }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 300px;
+      max-width: 85vw;
+      background: var(--card-bg);
+      border-right: 1px solid var(--card-border);
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.18);
+      transform: translateX(-105%);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+      z-index: 950;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .sidebar-title { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+    .sidebar-close {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+    .sidebar-close:hover { background: rgba(128, 128, 128, 0.12); }
+    .sidebar-section {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 0.9rem 0 0.2rem;
+      font-weight: 600;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 0.8rem;
+      border-radius: 10px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .sidebar-link:active { transform: scale(0.98); }
+    .sidebar-link:hover { background: rgba(128, 128, 128, 0.1); }
+    .sidebar-link-icon { font-size: 1.05rem; width: 1.4rem; text-align: center; }
+    .sidebar-link-sub {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
     /* Modal / Toast */
     .toast {
       position: fixed;
@@ -598,10 +723,50 @@ _HTML_PAGE = """<!DOCTYPE html>
   </style>
 </head>
 <body>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <aside class="sidebar" id="sidebar" aria-label="Quick links">
+    <div class="sidebar-header">
+      <span class="sidebar-title" data-i18n="sidebarTitle">快速链接</span>
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="sidebar-section" data-i18n="sidebarProject">项目</div>
+    <a class="sidebar-link" href="https://github.com/henryliu443/DevConfig-Gen" target="_blank" rel="noopener noreferrer">
+      <span class="sidebar-link-icon">🐙</span>
+      <span><span data-i18n="linkRepo">GitHub 仓库</span><span class="sidebar-link-sub">henryliu443/DevConfig-Gen</span></span>
+    </a>
+    <a class="sidebar-link" href="https://henryliu443.github.io/DevConfig-Gen/" target="_blank" rel="noopener noreferrer">
+      <span class="sidebar-link-icon">📚</span>
+      <span><span data-i18n="linkDocs">文档站点</span><span class="sidebar-link-sub">henryliu443.github.io/DevConfig-Gen</span></span>
+    </a>
+    <a class="sidebar-link" href="https://github.com/henryliu443/DevConfig-Gen/issues" target="_blank" rel="noopener noreferrer">
+      <span class="sidebar-link-icon">🐞</span>
+      <span data-i18n="linkIssues">问题反馈</span>
+    </a>
+    <div class="sidebar-section" data-i18n="sidebarContact">联系</div>
+    <a class="sidebar-link" href="mailto:henryliu443@gmail.com">
+      <span class="sidebar-link-icon">✉️</span>
+      <span><span data-i18n="linkEmail">邮箱</span><span class="sidebar-link-sub">henryliu443@gmail.com</span></span>
+    </a>
+    <div class="sidebar-section" data-i18n="sidebarAbout">关于</div>
+    <div class="sidebar-link" style="cursor: default;">
+      <span class="sidebar-link-icon">⚙️</span>
+      <span><span>DevConfig-Gen</span><span class="sidebar-link-sub" data-i18n="sidebarTagline">Provider 驱动的结构化配置生成与校验</span></span>
+    </div>
+  </aside>
+
   <header>
+    <div class="header-left">
+    <button class="hamburger" id="btnSidebar" type="button" aria-label="Menu">
+      <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true">
+        <rect width="18" height="2" rx="1" fill="currentColor"></rect>
+        <rect y="6" width="18" height="2" rx="1" fill="currentColor"></rect>
+        <rect y="12" width="18" height="2" rx="1" fill="currentColor"></rect>
+      </svg>
+    </button>
     <div class="brand">
       <span>⚙️ DevConfig-Gen</span>
       <span class="brand-tag" data-i18n="studio">工作台</span>
+    </div>
     </div>
     <div class="header-controls">
       <select id="providerSelect" style="width: auto; padding: 0.4rem 0.8rem;">
@@ -661,6 +826,15 @@ _HTML_PAGE = """<!DOCTYPE html>
     // ── i18n ──────────────────────────────────────────────
     const i18n = {
       zh: {
+        sidebarTitle: "快速链接",
+        sidebarProject: "项目",
+        sidebarContact: "联系",
+        sidebarAbout: "关于",
+        sidebarTagline: "Provider 驱动的结构化配置生成与校验",
+        linkRepo: "GitHub 仓库",
+        linkDocs: "文档站点",
+        linkIssues: "问题反馈",
+        linkEmail: "邮箱",
         studio: "工作台", importFile: "⬆️ 导入文件", loadPreset: "✨ 加载预设",
         saveToDisk: "💾 保存到磁盘", prev: "← 上一步", next: "下一步 →",
         finish: "完成 ✓", shortcut: "快捷键", livePreview: "实时配置预览",
@@ -699,7 +873,6 @@ _HTML_PAGE = """<!DOCTYPE html>
         treeNestHint: "用 { } 包起来，里面可以继续嵌套",
         treeBulkAdd: "批量添加",
         treeBulkObj: "批量：a, b, c 或 a=1, b=2, …（逗号分隔，一次可加很多）",
-        treeBulkArr: "批量：1, 2, 3, …（逗号分隔，一次可加很多）",
         treeRoot: "根节点",
         treeKey: "键名",
         treeType: "类型",
@@ -709,6 +882,15 @@ _HTML_PAGE = """<!DOCTYPE html>
         textParseError: "解析失败",
       },
       en: {
+        sidebarTitle: "Quick Links",
+        sidebarProject: "Project",
+        sidebarContact: "Contact",
+        sidebarAbout: "About",
+        sidebarTagline: "Provider-based structured config generation & validation",
+        linkRepo: "GitHub Repository",
+        linkDocs: "Documentation",
+        linkIssues: "Report an Issue",
+        linkEmail: "Email",
         studio: "Studio", importFile: "⬆️ Import File", loadPreset: "✨ Load Preset",
         saveToDisk: "💾 Save to Disk", prev: "← Previous", next: "Next →",
         finish: "Finish ✓", shortcut: "Shortcut", livePreview: "Live Generated Configuration",
@@ -747,7 +929,6 @@ _HTML_PAGE = """<!DOCTYPE html>
         treeNestHint: "Wrap in { }; you can keep nesting inside",
         treeBulkAdd: "Add all",
         treeBulkObj: "Bulk: a, b, c or a=1, b=2, … (comma-separated, many at once)",
-        treeBulkArr: "Bulk: 1, 2, 3, … (comma-separated, many at once)",
         treeRoot: "Root",
         treeKey: "Key",
         treeType: "Type",
@@ -1054,57 +1235,37 @@ _HTML_PAGE = """<!DOCTYPE html>
       };
       box.appendChild(add);
 
-      // Bulk add: many comma-separated elements in one go.
-      const bulk = document.createElement("div");
-      bulk.className = "tree-bulk";
-      const bulkInput = document.createElement("input");
-      bulkInput.type = "text";
-      bulkInput.placeholder = isArray ? t("treeBulkArr") : t("treeBulkObj");
-      const bulkBtn = document.createElement("button");
-      bulkBtn.type = "button";
-      bulkBtn.className = "tree-btn add";
-      bulkBtn.textContent = t("treeBulkAdd");
-      function commitBulk() {
-        const tokens = bulkInput.value
-          .split(/[,，]/)
-          .map(s => s.trim())
-          .filter(s => s !== "");
-        if (tokens.length === 0) return;
-        if (isArray) {
-          onChange(obj.concat(tokens.map(coerceToken)), true);
-        } else {
-          const next = Object.assign({}, obj);
-          tokens.forEach(tok => {
-            const eq = tok.indexOf("=");
-            if (eq >= 0) {
-              const key = tok.slice(0, eq).trim();
-              if (key) next[key] = coerceToken(tok.slice(eq + 1));
-            } else {
-              next[tok] = "";
-            }
-          });
-          onChange(next, true);
-        }
-        bulkInput.value = "";
-      }
-      bulkBtn.onclick = commitBulk;
-      bulkInput.onkeydown = (e) => {
-        if (e.key === "Enter") { e.preventDefault(); commitBulk(); }
-      };
-      bulk.appendChild(bulkInput);
-      bulk.appendChild(bulkBtn);
-      box.appendChild(bulk);
       return box;
     }
 
     // Mount the tree editor into `host`; persist(newRoot) stores each change.
     function renderTreeEditor(host, root, persist) {
       let current = (root && typeof root === "object" && !Array.isArray(root)) ? root : {};
+      let bulkVisible = false;
 
       function apply(next, structural) {
         current = next;
         persist(next);
         if (structural) paint();
+      }
+
+      function commitBulk(text) {
+        const tokens = String(text)
+          .split(/[,，]/)
+          .map(s => s.trim())
+          .filter(s => s !== "");
+        if (tokens.length === 0) return;
+        const next = Object.assign({}, current);
+        tokens.forEach(tok => {
+          const eq = tok.indexOf("=");
+          if (eq >= 0) {
+            const key = tok.slice(0, eq).trim();
+            if (key) next[key] = coerceToken(tok.slice(eq + 1));
+          } else {
+            next[tok] = "";
+          }
+        });
+        apply(next, true);
       }
 
       function paint() {
@@ -1118,13 +1279,52 @@ _HTML_PAGE = """<!DOCTYPE html>
         title.className = "tree-toolbar-title";
         title.textContent = t("treeRoot") + " (object)";
         toolbar.appendChild(title);
+
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.alignItems = "center";
+        actions.style.gap = "0.35rem";
+
+        const bulkBtn = document.createElement("button");
+        bulkBtn.type = "button";
+        bulkBtn.className = "tree-btn";
+        bulkBtn.textContent = t("treeBulkAdd");
+        bulkBtn.onclick = () => { bulkVisible = !bulkVisible; paint(); };
+        actions.appendChild(bulkBtn);
+
         const clearBtn = document.createElement("button");
         clearBtn.type = "button";
         clearBtn.className = "tree-btn remove";
         clearBtn.textContent = t("clearDoc");
         clearBtn.onclick = () => apply({}, true);
-        toolbar.appendChild(clearBtn);
+        actions.appendChild(clearBtn);
+        toolbar.appendChild(actions);
         box.appendChild(toolbar);
+
+        if (bulkVisible) {
+          const bar = document.createElement("div");
+          bar.className = "tree-bulk tree-bulk-bar";
+          const bulkInput = document.createElement("input");
+          bulkInput.type = "text";
+          bulkInput.placeholder = t("treeBulkObj");
+          bulkInput.onkeydown = (e) => {
+            if (e.key === "Enter") { e.preventDefault(); commitBulk(bulkInput.value); bulkInput.value = ""; }
+          };
+          const bulkAdd = document.createElement("button");
+          bulkAdd.type = "button";
+          bulkAdd.className = "tree-btn add";
+          bulkAdd.textContent = t("treeBulkAdd");
+          bulkAdd.onclick = () => { commitBulk(bulkInput.value); bulkInput.value = ""; };
+          const bulkCancel = document.createElement("button");
+          bulkCancel.type = "button";
+          bulkCancel.className = "tree-btn";
+          bulkCancel.textContent = "✕";
+          bulkCancel.onclick = () => { bulkVisible = false; paint(); };
+          bar.appendChild(bulkInput);
+          bar.appendChild(bulkAdd);
+          bar.appendChild(bulkCancel);
+          box.appendChild(bar);
+        }
 
         box.appendChild(buildContainerEditor(current, apply, 0, false));
         host.appendChild(box);
@@ -1200,6 +1400,19 @@ _HTML_PAGE = """<!DOCTYPE html>
       };
     }
 
+    // Treat an empty context (including a lone empty `document`) as blank, so a
+    // stale cleared draft never hides the provider's starter data.
+    function isBlankContext(data) {
+      if (!data || typeof data !== "object" || Array.isArray(data)) return true;
+      const keys = Object.keys(data);
+      if (keys.length === 0) return true;
+      if (keys.length === 1 && keys[0] === "document") {
+        const doc = data.document;
+        return !doc || (typeof doc === "object" && !Array.isArray(doc) && Object.keys(doc).length === 0);
+      }
+      return false;
+    }
+
     function starterData(provider) {
       if (provider === "custom") {
         return {
@@ -1240,7 +1453,7 @@ _HTML_PAGE = """<!DOCTYPE html>
 
       await loadSchema(currentProvider);
       restoreDraft();
-      if (!formData || Object.keys(formData).length === 0) {
+      if (isBlankContext(formData)) {
         formData = starterData(currentProvider);
       }
       renderStep();
@@ -1248,6 +1461,7 @@ _HTML_PAGE = """<!DOCTYPE html>
     }
 
     async function loadSchema(provider) {
+      await loadProviderWidgets(provider);
       const resp = await fetch(`/api/schema?provider=${provider}`);
       schemaSteps = await resp.json();
       activeStepIdx = 0;
@@ -1264,6 +1478,460 @@ _HTML_PAGE = """<!DOCTYPE html>
         btn.onclick = () => { activeStepIdx = idx; renderStep(); };
         nav.appendChild(btn);
       });
+    }
+
+    // ── Widget registry ───────────────────────────────────
+    // Field rendering is table-driven: each field type maps to a factory that
+    // receives a field context and renders into ctx.grp. Providers may register
+    // additional widgets through /api/widgets without editing this file.
+    const WidgetRegistry = (() => {
+      const table = new Map();
+      return {
+        register(type, factory) {
+          if (typeof type === "string" && typeof factory === "function") {
+            table.set(type, factory);
+          }
+          return factory;
+        },
+        unregister(type) { table.delete(type); },
+        get(type) { return table.get(type) || null; },
+        has(type) { return table.has(type); },
+        types() { return Array.from(table.keys()); },
+      };
+    })();
+
+    function makeFieldContext(field, grp) {
+      const fid = field.name.replace(/\\./g, "_");
+      return {
+        field: field,
+        fid: fid,
+        grp: grp,
+        provider: currentProvider,
+        existing: getDotted(formData, field.name, field.default),
+        setValue(val) {
+          setDotted(formData, field.name, val);
+          saveDraft();
+          triggerLivePreview();
+        },
+        setFormData(next) {
+          formData = next;
+          saveDraft();
+          triggerLivePreview();
+        },
+        getFormData() { return formData; },
+        rerender() { renderStep(); },
+      };
+    }
+
+    function fieldLabel(field) {
+      return `${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}`;
+    }
+
+    // ── Default widgets (one per built-in field type) ─────
+    function widgetSelect(ctx) {
+      const field = ctx.field, fid = ctx.fid, grp = ctx.grp;
+      const existing = ctx.existing;
+      grp.innerHTML = `
+        <label class="form-label">
+          <span>${fieldLabel(field)}</span>
+        </label>
+        <select id="field_${fid}">
+          ${field.choices.map(c => `<option value="${esc(c)}" ${c === existing ? "selected" : ""}>${esc(c)}</option>`).join("")}
+        </select>
+        <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+        <div class="form-error"></div>
+      `;
+      const sel = grp.querySelector("select");
+      sel.onchange = () => ctx.setValue(sel.value);
+      return grp;
+    }
+
+    function widgetText(ctx, isNum) {
+      const field = ctx.field, fid = ctx.fid, grp = ctx.grp;
+      if (field.choices && field.choices.length > 0) {
+        return widgetSelect(ctx);
+      }
+      const existing = ctx.existing;
+      grp.innerHTML = `
+        <label class="form-label">
+          <span>${fieldLabel(field)}</span>
+          ${field.minimum !== undefined && field.maximum !== undefined ? `<span class="form-hint">[${field.minimum} - ${field.maximum}]</span>` : ""}
+        </label>
+        <input type="${isNum ? 'number' : 'text'}" id="field_${fid}" 
+               value="${esc(existing !== null && existing !== undefined ? existing : '')}"
+               placeholder="${esc(field.default !== null && field.default !== undefined ? field.default : '')}">
+        <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+        <div class="form-error"></div>
+      `;
+      const input = grp.querySelector("input");
+      input.oninput = () => {
+        let val = input.value;
+        if (isNum && val !== "") val = parseInt(val, 10);
+        ctx.setValue(val === "" ? null : val);
+      };
+      return grp;
+    }
+
+    function widgetBoolean(ctx) {
+      const field = ctx.field, fid = ctx.fid, grp = ctx.grp;
+      const existing = ctx.existing;
+      grp.innerHTML = `
+        <label class="checkbox-label">
+          <input type="checkbox" id="field_${fid}" ${existing ? "checked" : ""}>
+          <span>${fieldLabel(field)}</span>
+        </label>
+        <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+      `;
+      const input = grp.querySelector("input");
+      input.onchange = () => ctx.setValue(input.checked);
+      return grp;
+    }
+
+    function widgetTree(ctx) {
+      const field = ctx.field, fid = ctx.fid, grp = ctx.grp;
+      grp.innerHTML = `
+        <label class="form-label">
+          <span>${esc(loc(field, "title"))}</span>
+        </label>
+        <div class="editor-mode-toggle">
+          <button type="button" class="mode-btn active" id="modeTree_${fid}">${t("modeTree")}</button>
+          <button type="button" class="mode-btn" id="modeText_${fid}">${t("modeText")}</button>
+        </div>
+        <div id="treeHost_${fid}"></div>
+        <div id="textHost_${fid}" style="display:none;"></div>
+        <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+        <div class="form-error"></div>
+      `;
+      const treeHost = grp.querySelector(`#treeHost_${fid}`);
+      const textHost = grp.querySelector(`#textHost_${fid}`);
+      const btnTree = grp.querySelector(`#modeTree_${fid}`);
+      const btnText = grp.querySelector(`#modeText_${fid}`);
+      let treeData = ctx.existing;
+      if (!treeData || typeof treeData !== "object") {
+        treeData = {};
+      }
+      const persistTree = (next) => {
+        treeData = next;
+        ctx.setValue(next);
+      };
+      function showTreeMode() {
+        btnTree.className = "mode-btn active";
+        btnText.className = "mode-btn";
+        treeHost.style.display = "";
+        textHost.style.display = "none";
+        renderTreeEditor(treeHost, treeData, persistTree);
+      }
+      function showTextMode() {
+        btnTree.className = "mode-btn";
+        btnText.className = "mode-btn active";
+        treeHost.style.display = "none";
+        textHost.style.display = "";
+        mountTextEditor(textHost, treeData, persistTree);
+      }
+      btnTree.onclick = showTreeMode;
+      btnText.onclick = showTextMode;
+      showTreeMode();
+      return grp;
+    }
+
+    function widgetDocument(ctx) {
+      const field = ctx.field, fid = ctx.fid, grp = ctx.grp;
+      const provider = ctx.provider;
+      let docData = ctx.existing;
+      if ((!docData || (typeof docData === "object" && Object.keys(docData).length === 0)) && provider === "json") {
+        const keys = Object.keys(ctx.getFormData()).filter(k => k !== "document");
+        if (keys.length > 0) docData = ctx.getFormData();
+      }
+      if (!docData) {
+        docData = {
+          app: {
+            name: "example-app",
+            port: 8080,
+            environment: "development"
+          }
+        };
+        if (provider === "json") {
+          const next = JSON.parse(JSON.stringify(docData));
+          next.document = JSON.parse(JSON.stringify(docData));
+          ctx.setFormData(next);
+        } else {
+          ctx.setValue(docData);
+        }
+      }
+      let initialText = "";
+      try {
+        initialText = typeof docData === "string" ? docData : JSON.stringify(docData, null, 2);
+      } catch (e) {
+        initialText = "{}";
+      }
+
+      grp.innerHTML = `
+        <label class="form-label">
+          <span>${fieldLabel(field)}</span>
+        </label>
+        <div class="doc-dropzone" id="dropzone_${fid}">
+          <div class="doc-dropzone-icon">📄</div>
+          <div class="doc-dropzone-text">${t("uploadOrDrop")}</div>
+          <div class="doc-dropzone-sub">${t("dropHint")}</div>
+          <input type="file" id="dropInput_${fid}" style="display:none;" accept=".json,.yaml,.yml">
+        </div>
+        <div class="doc-editor-card">
+          <div class="doc-editor-toolbar">
+            <span style="font-weight:600; color:var(--text);">${t("docEditor")}</span>
+            <div class="doc-editor-toolbar-actions">
+              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocSample_${fid}">${t("sampleDoc")}</button>
+              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocFormat_${fid}">${t("formatDoc")}</button>
+              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocClear_${fid}">${t("clearDoc")}</button>
+            </div>
+          </div>
+          <textarea class="doc-editor-textarea" id="docText_${fid}" spellcheck="false"></textarea>
+        </div>
+        <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+        <div class="form-error" id="docErr_${fid}"></div>
+      `;
+
+      const dropzone = grp.querySelector(`#dropzone_${fid}`);
+      const dropInput = grp.querySelector(`#dropInput_${fid}`);
+      const textarea = grp.querySelector(`#docText_${fid}`);
+      const docErr = grp.querySelector(`#docErr_${fid}`);
+      const btnSample = grp.querySelector(`#btnDocSample_${fid}`);
+      const btnFormat = grp.querySelector(`#btnDocFormat_${fid}`);
+      const btnClear = grp.querySelector(`#btnDocClear_${fid}`);
+
+      textarea.value = initialText;
+
+      function updateDocContext(parsed) {
+        if (provider === "json") {
+          formData = parsed;
+          formData.document = parsed;
+          saveDraft();
+          triggerLivePreview();
+        } else {
+          ctx.setValue(parsed);
+        }
+      }
+
+      let docTimer = null;
+      function parseAndApply(text) {
+        clearTimeout(docTimer);
+        docTimer = setTimeout(async () => {
+          const trimmed = text.trim();
+          if (!trimmed) {
+            docErr.textContent = "";
+            updateDocContext({});
+            return;
+          }
+          try {
+            const resp = await fetch("/api/parse", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ content: trimmed })
+            });
+            const res = await resp.json();
+            if (res.context) {
+              docErr.textContent = "";
+              updateDocContext(res.context);
+            } else {
+              docErr.textContent = res.error || "Format parse error";
+            }
+          } catch (err) {
+            docErr.textContent = String(err);
+          }
+        }, 150);
+      }
+
+      textarea.oninput = () => {
+        parseAndApply(textarea.value);
+      };
+
+      async function handleDocFile(file) {
+        if (!file) return;
+        try {
+          const text = await file.text();
+          textarea.value = text;
+          const resp = await fetch("/api/parse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: text })
+          });
+          const res = await resp.json();
+          if (res.context) {
+            docErr.textContent = "";
+            updateDocContext(res.context);
+            showToast(t("uploadOk")(file.name));
+          } else {
+            docErr.textContent = res.error || "Format parse error";
+          }
+        } catch (e) {
+          docErr.textContent = String(e);
+        }
+      }
+
+      dropzone.onclick = () => dropInput.click();
+      dropInput.onchange = () => {
+        if (dropInput.files[0]) handleDocFile(dropInput.files[0]);
+      };
+      dropzone.ondragover = (e) => {
+        e.preventDefault();
+        dropzone.classList.add("drag-over");
+      };
+      dropzone.ondragleave = () => {
+        dropzone.classList.remove("drag-over");
+      };
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("drag-over");
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleDocFile(e.dataTransfer.files[0]);
+        }
+      };
+
+      btnSample.onclick = () => {
+        const sample = {
+          app: {
+            name: "checkout-api",
+            version: "1.0.0",
+            port: 8080,
+            environment: "production",
+            labels: { tier: "backend", team: "core" }
+          }
+        };
+        textarea.value = JSON.stringify(sample, null, 2);
+        parseAndApply(textarea.value);
+      };
+
+      btnFormat.onclick = () => {
+        try {
+          const val = JSON.parse(textarea.value);
+          textarea.value = JSON.stringify(val, null, 2);
+          docErr.textContent = "";
+        } catch (e) {
+          showToast("JSON 格式化需要标准 JSON 语法 / Standard JSON required");
+        }
+      };
+
+      btnClear.onclick = () => {
+        textarea.value = "{\\n}";
+        parseAndApply(textarea.value);
+      };
+      return grp;
+    }
+
+    function widgetMapping(ctx) {
+      const field = ctx.field, fid = ctx.fid, grp = ctx.grp;
+      const mapData = ctx.existing || {};
+      grp.innerHTML = `
+        <label class="form-label">
+          <span>${esc(loc(field, "title"))} (${t("keyValuePairs")})</span>
+          <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnAddMap_${fid}">${t("add")}</button>
+        </label>
+        <div class="mapping-table" id="mapTable_${fid}"></div>
+        <div class="form-hint">${esc(loc(field, "description") || "")}</div>
+      `;
+      const table = grp.querySelector(`#mapTable_${fid}`);
+      const addBtn = grp.querySelector(`#btnAddMap_${fid}`);
+
+      function renderMapRows() {
+        table.innerHTML = "";
+        const keys = Object.keys(mapData);
+        if (keys.length === 0) {
+          table.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">${t("noEntries")}</div>`;
+        }
+        keys.forEach(k => {
+          const row = document.createElement("div");
+          row.className = "mapping-row";
+          row.innerHTML = `
+            <input type="text" placeholder="${t("key")}" value="${esc(k)}" class="map-k">
+            <input type="text" placeholder="${t("value")}" value="${esc(mapData[k])}" class="map-v">
+            <button type="button" class="mapping-remove">✕</button>
+          `;
+          const kInput = row.querySelector(".map-k");
+          const vInput = row.querySelector(".map-v");
+          row.querySelector(".mapping-remove").onclick = () => {
+            delete mapData[k];
+            ctx.setValue(mapData);
+            renderMapRows();
+          };
+          kInput.onchange = () => {
+            const newK = kInput.value.trim();
+            const oldV = mapData[k];
+            delete mapData[k];
+            if (newK) mapData[newK] = oldV;
+            ctx.setValue(mapData);
+            renderMapRows();
+          };
+          vInput.oninput = () => {
+            mapData[k] = vInput.value.trim();
+            ctx.setValue(mapData);
+          };
+          table.appendChild(row);
+        });
+      }
+      addBtn.onclick = () => {
+        const nextKey = `key_${Object.keys(mapData).length + 1}`;
+        mapData[nextKey] = "value";
+        ctx.setValue(mapData);
+        renderMapRows();
+      };
+      renderMapRows();
+      return grp;
+    }
+
+    // Built-in type -> factory table. Providers can extend it via /api/widgets.
+    const DEFAULT_WIDGET_FACTORIES = {
+      string: (ctx) => widgetText(ctx, false),
+      integer: (ctx) => widgetText(ctx, true),
+      boolean: widgetBoolean,
+      mapping: widgetMapping,
+      document: widgetDocument,
+      tree: widgetTree,
+    };
+
+    function registerDefaultWidgets() {
+      Object.keys(DEFAULT_WIDGET_FACTORIES).forEach(type => {
+        WidgetRegistry.register(type, DEFAULT_WIDGET_FACTORIES[type]);
+      });
+    }
+
+    // Restore the built-in table, dropping any provider-supplied widgets.
+    function resetWidgets() {
+      WidgetRegistry.types().forEach(type => WidgetRegistry.unregister(type));
+      registerDefaultWidgets();
+    }
+
+    registerDefaultWidgets();
+
+    // Load provider-declared widgets (same-origin /api/widgets only) and register
+    // each returned JavaScript factory. Failures fall back to the default widget.
+    async function loadProviderWidgets(provider) {
+      resetWidgets();
+      try {
+        const resp = await fetch(`/api/widgets?provider=${encodeURIComponent(provider)}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const widgets = (data && data.widgets) || {};
+        Object.keys(widgets).forEach(type => {
+          const src = widgets[type];
+          if (typeof src !== "string") return;
+          try {
+            const factory = (new Function(`"use strict"; return (${src});`))();
+            if (typeof factory === "function") {
+              WidgetRegistry.register(type, factory);
+            } else {
+              console.error(`provider widget '${type}' is not a function`);
+            }
+          } catch (err) {
+            console.error(`failed to load provider widget '${type}':`, err);
+          }
+        });
+      } catch (err) {
+        console.error("Failed to load provider widgets:", err);
+      }
+    }
+
+    function resolveWidget(field) {
+      const type = field.type || "string";
+      return WidgetRegistry.get(type) || WidgetRegistry.get("string");
     }
 
     function renderStep() {
@@ -1283,345 +1951,13 @@ _HTML_PAGE = """<!DOCTYPE html>
         const grp = document.createElement("div");
         grp.className = "form-group";
         grp.id = `grp_${field.name.replace(/\\./g, "_")}`;
-
-        const existing = getDotted(formData, field.name, field.default);
-        const fid = field.name.replace(/\\./g, "_");
-
-        if (field.type === "boolean") {
-          grp.innerHTML = `
-            <label class="checkbox-label">
-              <input type="checkbox" id="field_${fid}" ${existing ? "checked" : ""}>
-              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
-            </label>
-            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
-          `;
-          const input = grp.querySelector("input");
-          input.onchange = () => {
-            setDotted(formData, field.name, input.checked);
-            saveDraft();
-            triggerLivePreview();
-          };
-        } else if (field.choices && field.choices.length > 0) {
-          grp.innerHTML = `
-            <label class="form-label">
-              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
-            </label>
-            <select id="field_${fid}">
-              ${field.choices.map(c => `<option value="${esc(c)}" ${c === existing ? "selected" : ""}>${esc(c)}</option>`).join("")}
-            </select>
-            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
-            <div class="form-error"></div>
-          `;
-          const sel = grp.querySelector("select");
-          sel.onchange = () => {
-            setDotted(formData, field.name, sel.value);
-            saveDraft();
-            triggerLivePreview();
-          };
-        } else if (field.type === "tree") {
-          grp.innerHTML = `
-            <label class="form-label">
-              <span>${esc(loc(field, "title"))}</span>
-            </label>
-            <div class="editor-mode-toggle">
-              <button type="button" class="mode-btn active" id="modeTree_${fid}">${t("modeTree")}</button>
-              <button type="button" class="mode-btn" id="modeText_${fid}">${t("modeText")}</button>
-            </div>
-            <div id="treeHost_${fid}"></div>
-            <div id="textHost_${fid}" style="display:none;"></div>
-            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
-            <div class="form-error"></div>
-          `;
-          const treeHost = grp.querySelector(`#treeHost_${fid}`);
-          const textHost = grp.querySelector(`#textHost_${fid}`);
-          const btnTree = grp.querySelector(`#modeTree_${fid}`);
-          const btnText = grp.querySelector(`#modeText_${fid}`);
-          let treeData = existing;
-          if (!treeData || typeof treeData !== "object") {
-            treeData = {};
-          }
-          const persistTree = (next) => {
-            treeData = next;
-            setDotted(formData, field.name, next);
-            saveDraft();
-            triggerLivePreview();
-          };
-          function showTreeMode() {
-            btnTree.className = "mode-btn active";
-            btnText.className = "mode-btn";
-            treeHost.style.display = "";
-            textHost.style.display = "none";
-            renderTreeEditor(treeHost, treeData, persistTree);
-          }
-          function showTextMode() {
-            btnTree.className = "mode-btn";
-            btnText.className = "mode-btn active";
-            treeHost.style.display = "none";
-            textHost.style.display = "";
-            mountTextEditor(textHost, treeData, persistTree);
-          }
-          btnTree.onclick = showTreeMode;
-          btnText.onclick = showTextMode;
-          showTreeMode();
-        } else if (field.type === "document" || (currentProvider === "json" && field.name === "document")) {
-          let docData = existing;
-          if ((!docData || (typeof docData === "object" && Object.keys(docData).length === 0)) && currentProvider === "json") {
-            const keys = Object.keys(formData).filter(k => k !== "document");
-            if (keys.length > 0) docData = formData;
-          }
-          if (!docData) {
-            docData = {
-              app: {
-                name: "example-app",
-                port: 8080,
-                environment: "development"
-              }
-            };
-            if (currentProvider === "json") {
-              formData = JSON.parse(JSON.stringify(docData));
-              formData.document = JSON.parse(JSON.stringify(docData));
-            } else {
-              setDotted(formData, field.name, docData);
-            }
-          }
-          let initialText = "";
-          try {
-            initialText = typeof docData === "string" ? docData : JSON.stringify(docData, null, 2);
-          } catch (e) {
-            initialText = "{}";
-          }
-
-          grp.innerHTML = `
-            <label class="form-label">
-              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
-            </label>
-            <div class="doc-dropzone" id="dropzone_${fid}">
-              <div class="doc-dropzone-icon">📄</div>
-              <div class="doc-dropzone-text">${t("uploadOrDrop")}</div>
-              <div class="doc-dropzone-sub">${t("dropHint")}</div>
-              <input type="file" id="dropInput_${fid}" style="display:none;" accept=".json,.yaml,.yml">
-            </div>
-            <div class="doc-editor-card">
-              <div class="doc-editor-toolbar">
-                <span style="font-weight:600; color:var(--text);">${t("docEditor")}</span>
-                <div class="doc-editor-toolbar-actions">
-                  <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocSample_${fid}">${t("sampleDoc")}</button>
-                  <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocFormat_${fid}">${t("formatDoc")}</button>
-                  <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnDocClear_${fid}">${t("clearDoc")}</button>
-                </div>
-              </div>
-              <textarea class="doc-editor-textarea" id="docText_${fid}" spellcheck="false"></textarea>
-            </div>
-            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
-            <div class="form-error" id="docErr_${fid}"></div>
-          `;
-
-          const dropzone = grp.querySelector(`#dropzone_${fid}`);
-          const dropInput = grp.querySelector(`#dropInput_${fid}`);
-          const textarea = grp.querySelector(`#docText_${fid}`);
-          const docErr = grp.querySelector(`#docErr_${fid}`);
-          const btnSample = grp.querySelector(`#btnDocSample_${fid}`);
-          const btnFormat = grp.querySelector(`#btnDocFormat_${fid}`);
-          const btnClear = grp.querySelector(`#btnDocClear_${fid}`);
-
-          textarea.value = initialText;
-
-          function updateDocContext(parsed) {
-            if (currentProvider === "json") {
-              formData = parsed;
-              formData.document = parsed;
-            } else {
-              setDotted(formData, field.name, parsed);
-            }
-            saveDraft();
-            triggerLivePreview();
-          }
-
-          let docTimer = null;
-          function parseAndApply(text) {
-            clearTimeout(docTimer);
-            docTimer = setTimeout(async () => {
-              const trimmed = text.trim();
-              if (!trimmed) {
-                docErr.textContent = "";
-                updateDocContext({});
-                return;
-              }
-              try {
-                const resp = await fetch("/api/parse", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ content: trimmed })
-                });
-                const res = await resp.json();
-                if (res.context) {
-                  docErr.textContent = "";
-                  updateDocContext(res.context);
-                } else {
-                  docErr.textContent = res.error || "Format parse error";
-                }
-              } catch (err) {
-                docErr.textContent = String(err);
-              }
-            }, 150);
-          }
-
-          textarea.oninput = () => {
-            parseAndApply(textarea.value);
-          };
-
-          async function handleDocFile(file) {
-            if (!file) return;
-            try {
-              const text = await file.text();
-              textarea.value = text;
-              const resp = await fetch("/api/parse", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: text })
-              });
-              const res = await resp.json();
-              if (res.context) {
-                docErr.textContent = "";
-                updateDocContext(res.context);
-                showToast(t("uploadOk")(file.name));
-              } else {
-                docErr.textContent = res.error || "Format parse error";
-              }
-            } catch (e) {
-              docErr.textContent = String(e);
-            }
-          }
-
-          dropzone.onclick = () => dropInput.click();
-          dropInput.onchange = () => {
-            if (dropInput.files[0]) handleDocFile(dropInput.files[0]);
-          };
-          dropzone.ondragover = (e) => {
-            e.preventDefault();
-            dropzone.classList.add("drag-over");
-          };
-          dropzone.ondragleave = () => {
-            dropzone.classList.remove("drag-over");
-          };
-          dropzone.ondrop = (e) => {
-            e.preventDefault();
-            dropzone.classList.remove("drag-over");
-            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
-              handleDocFile(e.dataTransfer.files[0]);
-            }
-          };
-
-          btnSample.onclick = () => {
-            const sample = {
-              app: {
-                name: "checkout-api",
-                version: "1.0.0",
-                port: 8080,
-                environment: "production",
-                labels: { tier: "backend", team: "core" }
-              }
-            };
-            textarea.value = JSON.stringify(sample, null, 2);
-            parseAndApply(textarea.value);
-          };
-
-          btnFormat.onclick = () => {
-            try {
-              const val = JSON.parse(textarea.value);
-              textarea.value = JSON.stringify(val, null, 2);
-              docErr.textContent = "";
-            } catch (e) {
-              showToast("JSON 格式化需要标准 JSON 语法 / Standard JSON required");
-            }
-          };
-
-          btnClear.onclick = () => {
-            textarea.value = "{\\n}";
-            parseAndApply(textarea.value);
-          };
-        } else if (field.type === "mapping") {
-          const mapData = existing || {};
-          grp.innerHTML = `
-            <label class="form-label">
-              <span>${esc(loc(field, "title"))} (${t("keyValuePairs")})</span>
-              <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.75rem;" id="btnAddMap_${fid}">${t("add")}</button>
-            </label>
-            <div class="mapping-table" id="mapTable_${fid}"></div>
-            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
-          `;
-          const table = grp.querySelector(`#mapTable_${fid}`);
-          const addBtn = grp.querySelector(`#btnAddMap_${fid}`);
-          
-          function renderMapRows() {
-            table.innerHTML = "";
-            const keys = Object.keys(mapData);
-            if (keys.length === 0) {
-              table.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">${t("noEntries")}</div>`;
-            }
-            keys.forEach(k => {
-              const row = document.createElement("div");
-              row.className = "mapping-row";
-              row.innerHTML = `
-                <input type="text" placeholder="${t("key")}" value="${esc(k)}" class="map-k">
-                <input type="text" placeholder="${t("value")}" value="${esc(mapData[k])}" class="map-v">
-                <button type="button" class="mapping-remove">✕</button>
-              `;
-              const kInput = row.querySelector(".map-k");
-              const vInput = row.querySelector(".map-v");
-              row.querySelector(".mapping-remove").onclick = () => {
-                delete mapData[k];
-                setDotted(formData, field.name, mapData);
-                renderMapRows();
-                triggerLivePreview();
-              };
-              kInput.onchange = () => {
-                const newK = kInput.value.trim();
-                const oldV = mapData[k];
-                delete mapData[k];
-                if (newK) mapData[newK] = oldV;
-                setDotted(formData, field.name, mapData);
-                renderMapRows();
-                triggerLivePreview();
-              };
-              vInput.oninput = () => {
-                mapData[k] = vInput.value.trim();
-                setDotted(formData, field.name, mapData);
-                triggerLivePreview();
-              };
-              table.appendChild(row);
-            });
-          }
-          addBtn.onclick = () => {
-            const nextKey = `key_${Object.keys(mapData).length + 1}`;
-            mapData[nextKey] = "value";
-            setDotted(formData, field.name, mapData);
-            renderMapRows();
-            triggerLivePreview();
-          };
-          renderMapRows();
-        } else {
-          // string or integer
-          const isNum = field.type === "integer";
-          grp.innerHTML = `
-            <label class="form-label">
-              <span>${esc(loc(field, "title"))} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</span>
-              ${field.minimum !== undefined && field.maximum !== undefined ? `<span class="form-hint">[${field.minimum} - ${field.maximum}]</span>` : ""}
-            </label>
-            <input type="${isNum ? 'number' : 'text'}" id="field_${fid}" 
-                   value="${esc(existing !== null && existing !== undefined ? existing : '')}"
-                   placeholder="${esc(field.default !== null && field.default !== undefined ? field.default : '')}">
-            <div class="form-hint">${esc(loc(field, "description") || "")}</div>
-            <div class="form-error"></div>
-          `;
-          const input = grp.querySelector("input");
-          input.oninput = () => {
-            let val = input.value;
-            if (isNum && val !== "") val = parseInt(val, 10);
-            setDotted(formData, field.name, val === "" ? null : val);
-            saveDraft();
-            triggerLivePreview();
-          };
+        const ctx = makeFieldContext(field, grp);
+        const factory = resolveWidget(field);
+        try {
+          factory(ctx);
+        } catch (err) {
+          console.error(`widget failed for field '${field.name}':`, err);
+          widgetText(ctx, false);
         }
         fieldsContainer.appendChild(grp);
       });
@@ -1875,7 +2211,7 @@ _HTML_PAGE = """<!DOCTYPE html>
       await loadSchema(currentProvider);
       formData = {};
       restoreDraft();
-      if (!formData || Object.keys(formData).length === 0) {
+      if (isBlankContext(formData)) {
         formData = starterData(currentProvider);
       }
       renderStep();
@@ -1890,6 +2226,20 @@ _HTML_PAGE = """<!DOCTYPE html>
       renderStep();
       triggerLivePreview();
     };
+
+    // ── Sidebar (quick links) ─────────────────────────────
+    const sidebarEl = document.getElementById("sidebar");
+    const sidebarBackdropEl = document.getElementById("sidebarBackdrop");
+    function setSidebar(open) {
+      sidebarEl.classList.toggle("open", open);
+      sidebarBackdropEl.classList.toggle("open", open);
+    }
+    document.getElementById("btnSidebar").onclick = () => setSidebar(true);
+    document.getElementById("sidebarClose").onclick = () => setSidebar(false);
+    sidebarBackdropEl.onclick = () => setSidebar(false);
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setSidebar(false);
+    });
 
     // ── Start App ────────────────────────────────────────
     window.onload = () => { applyLang(); initApp(); };
@@ -1996,6 +2346,21 @@ class WebUIRequestHandler(BaseHTTPRequestHandler):
                 provider_name = query.get("provider", ["custom"])[0]
                 steps = describe_provider(provider_name, registry=self.registry)
                 self._send_json([s.as_dict() for s in steps])
+                return
+
+            if path == "/api/widgets":
+                provider_name = query.get("provider", ["custom"])[0]
+                selected = self.registry.get(provider_name)
+                build_widgets = getattr(selected, "web_ui_widgets", None)
+                widgets: dict = {}
+                if callable(build_widgets):
+                    declared = build_widgets()
+                    if isinstance(declared, Mapping):
+                        widgets = {
+                            str(field_type): str(source)
+                            for field_type, source in declared.items()
+                        }
+                self._send_json({"provider": provider_name, "widgets": widgets})
                 return
         except ValueError as exc:
             self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)

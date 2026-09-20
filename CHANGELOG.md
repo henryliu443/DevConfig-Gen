@@ -6,22 +6,44 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0]
+
 ### Added
 
+- **WebUI widget registry**: field rendering is now table-driven. The six
+  built-in field types (`string`, `integer`, `boolean`, `mapping`, `document`,
+  `tree`) each map to a registered default widget instead of a hard-coded
+  `if`/`else` chain, so the rendering path is pluggable end to end.
+- **Provider-declared widgets**: an optional `web_ui_widgets()` method lets a
+  provider map a `field_type` to a JavaScript factory. The new
+  `GET /api/widgets?provider=<name>` endpoint serves them and the client
+  registers them into the same table; unknown types fall back to `string`, and
+  providers without the method behave exactly as before.
+- `WebUIWidgets` protocol in `devconfig_gen.models` (documentation-only; never
+  required) and exported from the package root.
+- WebUI hamburger sidebar (`☰`) with quick links to the repository, docs site,
+  issues, and email.
+- Blank-context detection: a stale cleared draft (`{}` or a lone empty
+  `document`) no longer hides the provider's starter data.
+
+### Changed
+
+- The `custom` tree editor's bulk add moved from an inline row inside every
+  container to a toolbar toggle at the root, reducing clutter at every depth.
+- WebUI visual refresh: larger rounded cards, pill-shaped buttons, softer
+  shadows, and more generous spacing.
 - Complete technical documentation set under `docs/`, covering installation,
   CLI, Python API, providers, formats, input merging, validation, the
   interactive wizard, the Web UI/HTTP API, development, and architecture.
 - `mkdocs.yml` (MkDocs + Material) plus a GitHub Pages workflow that publishes
-  `docs/` from the dedicated `docs` branch (guarded by `if` checks and
-  environment/branch protection) ; the Markdown files remain the source of
-  truth, and Unicode-preserving heading anchors keep the existing relative
-  links valid.
+  `docs/` from the dedicated `docs` branch; the Markdown files remain the source
+  of truth, and Unicode-preserving heading anchors keep relative links valid.
 
 ### Fixed
 
-- `devconfig_gen.__version__` now reports `1.0.0`, matching `pyproject.toml`;
-  the CLI `--version` output reads the package version instead of a hard-coded
-  string, and a test guards the two against drifting apart.
+- `devconfig_gen.__version__` matches `pyproject.toml`; the CLI `--version`
+  output reads the package version instead of a hard-coded string, and a test
+  guards the two against drifting apart.
 
 ## [1.0.0]
 

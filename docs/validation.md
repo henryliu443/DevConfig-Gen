@@ -1,7 +1,8 @@
 # 校验与诊断
 
 校验由 Provider 负责，引擎只负责调用和汇总。所有问题会一次性收集，而不是
-遇到第一个错误就停止。
+遇到第一个错误就停止。Provider 契约见
+[Provider 参考与开发](providers.md#provider-契约)。
 
 ## Diagnostic
 
@@ -121,3 +122,5 @@ diagnose_request("json", context=[1, 2, 3])
 diagnose_request("custom", context={"anything": [1, 2]})
 # ()
 ```
+
+更多内容见 [Python API](python-api.md) 与 [Provider 参考与开发](providers.md)。

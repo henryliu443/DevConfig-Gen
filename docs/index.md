@@ -35,7 +35,7 @@ CLI 是主要使用面，建议按下面的顺序阅读：
 | [Provider 参考与开发](providers.md) | 三个内置 Provider 的准确行为、元数据模型、自定义 Provider 指南 |
 | [Python API](python-api.md) | 包级导出、engine、formats、registry、models、validation |
 | [交互式向导](wizard.md) | `devconfig-gen init` 的提示类型、默认值、重试与输出选择 |
-| [Web 工作台与 HTTP API](web-ui.md) | `devconfig-gen ui` 的功能、HTTP 接口、安全边界 |
+| [Web 工作台与 HTTP API](web-ui.md) | `devconfig-gen ui` 的功能、HTTP 接口、Widget 扩展、安全边界 |
 | [开发与测试](development.md) | 项目结构、测试、CI、打包、文档维护 |
 | [架构总览](architecture.md) | 分层、数据流、扩展点；完整设计决策见仓库根目录 [ARCHITECTURE.md](https://github.com/henryliu443/DevConfig-Gen/blob/main/ARCHITECTURE.md) |
 
@@ -46,11 +46,11 @@ CLI 是主要使用面，建议按下面的顺序阅读：
 ### 核心引擎与契约
 
 - Provider 协议：`name`、`validate`、`generate` 为必需，`diagnose`、
-  `describe_schema`/`steps` 可选（`models.py`、`engine.py`）。
+  `describe_schema`/`steps`、`web_ui_widgets` 可选（`models.py`、`engine.py`）。
 - 单入口流水线：CLI、Python API、向导、Web 工作台都调用
   `devconfig_gen.engine.generate`（`engine.py`）。
 - 数据契约：`GenerationRequest`、`GenerationResult`、`GeneratedArtifact`、
-  `Diagnostic`、`ProviderField`、`ProviderStep`（`models.py`）。
+  `Diagnostic`、`ProviderField`、`ProviderStep`、`WebUIWidgets`（`models.py`）。
 - Provider 注册表：名称必须为非空小写字符串，重复注册或未知名称抛出
   `ValueError`（`registry.py`）。
 
@@ -101,7 +101,18 @@ CLI 是主要使用面，建议按下面的顺序阅读：
 - 终端向导 `init`：按 `ProviderField.type` 提示，支持默认值、选项、上下界、
   从文件加载文档、校验失败后保留答案重试（`interactive.py`）。
 - Web 工作台 `ui`：标准库 `ThreadingHTTPServer` 提供的单页应用 + JSON API；
-  中英双语、实时预览、草稿保存、磁盘导出沙箱、仅回环访问（`web_ui.py`）。
+  中英双语、实时预览、草稿保存、磁盘导出沙箱、仅回环访问；左上角 `☰`
+  侧边栏直达仓库、文档站点、问题反馈与邮箱；空上下文检测确保陈旧草稿不会
+  遮挡 Provider 的初始数据（`web_ui.py`）。
+- 字段渲染查表驱动：`WidgetRegistry` 为六种内置字段类型（`string`、`integer`、
+  `boolean`、`mapping`、`document`、`tree`）各注册一个默认 Widget，取代旧的
+  `if`/`else` 分支链（`web_ui.py`）。
+- Provider 可选 Widget：Provider 可实现 `web_ui_widgets()` 返回
+  `{field_type: js_factory_source}`，后端经 `GET /api/widgets?provider=<name>`
+  下发，前端把工厂函数注册进同一张 Widget 表；未知字段类型回退到 `string`，
+  未实现该方法的 Provider 行为完全不变（`models.py`、`web_ui.py`）。
+- `custom` 树编辑器的批量添加从每个容器内的内联行移到根工具栏开关，降低
+  各层级界面的拥挤程度（`web_ui.py`）。
 
 ### 产物与输出
 
@@ -115,25 +126,28 @@ CLI 是主要使用面，建议按下面的顺序阅读：
 
 ### 工程化
 
-- 测试套件 135 个用例，覆盖格式、校验、Provider、合并、CLI/API 等价性、
-  向导、Web UI（`tests/`）。
+- 测试套件 143 个用例，覆盖格式、校验、Provider、合并、CLI/API 等价性、
+  向导、Web UI 与 Widget 注册表（`tests/`）。
 - GitHub Actions CI：Linux/macOS × Python 3.8–3.14（`.github/workflows/ci.yml`）。
 - 发布工作流：推送 `v*` 标签构建 sdist/wheel 并发布到 PyPI
   （`.github/workflows/release.yml`）。
+- 文档站点：`docs/` 经 MkDocs + Material 从 `docs` 分支发布到
+  <https://henryliu443.github.io/DevConfig-Gen/>（`mkdocs.yml`、
+  `.github/workflows/docs.yml`）。
 
 ## 模块地图
 
 ```text
 src/devconfig_gen/
 ├── __init__.py       包导出与惰性 UI 入口（PEP 562）
-├── models.py         稳定数据契约：请求/结果/产物/诊断/字段/步骤/协议
+├── models.py         稳定数据契约：请求/结果/产物/诊断/字段/步骤/协议（含 WebUIWidgets）
 ├── engine.py         唯一执行流水线：构建请求、校验、生成、持久化
 ├── formats.py        JSON/YAML 加载与序列化、格式检测、深度合并、类型推断
 ├── validation.py     路径感知的校验辅助函数与 ValidationError
 ├── registry.py       ProviderRegistry 与内置 Provider 注册
 ├── cli.py            命令行入口（仅参数解析与调用 engine）
 ├── interactive.py    `init` 终端向导（惰性导入）
-├── web_ui.py         `ui` 本地工作台与 HTTP API（惰性导入）
+├── web_ui.py         `ui` 本地工作台、HTTP API 与查表式 Widget 渲染（惰性导入）
 └── providers/
     ├── custom.py     custom Provider
     ├── json_provider.py  json Provider
@@ -142,5 +156,5 @@ src/devconfig_gen/
 
 ## 版本
 
-当前版本 `1.0.0`（`pyproject.toml`、`devconfig_gen.__version__` 与
+当前版本 `1.1.0`（`pyproject.toml`、`devconfig_gen.__version__` 与
 `devconfig-gen --version` 保持一致）。
