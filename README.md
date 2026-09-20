@@ -287,11 +287,13 @@ JSON 由标准库处理；YAML 在安装 PyYAML 时使用 PyYAML，否则使用�
 
 ## 仓库关系 / Repo relationship
 
-- 本仓库是 **父仓库（parent / upstream）**，承载中立核心与 Provider 标准。
-- **子仓库（child / fork）**：`DevConfig-Gen_SingBox`，领域集成分支。
-- 领域 Provider（如 `providers/singbox/`）只存在于下游，**不回填父仓库**。
+- 本仓库是 **子仓库（child / fork）**：`DevConfig-Gen_SingBox`，私有集成分支。
+- **父仓库（parent / upstream）**：`DevConfig-Gen`
+  （https://github.com/henryliu443/DevConfig-Gen），承载中立核心与 Provider 标准。
+- 领域 Provider（如 `providers/singbox/`）只存在于**本仓库**，**不回填父仓库**。
 
-权威方向为 **parent → child → downstream**。约定见 [`AGENTS.md`](AGENTS.md)。
+权威方向为 **parent → child → downstream**。核心改动先在父仓库落地，再通过
+`upstream` remote 合入本仓库；不得分叉或改写中立核心。约定见 [`AGENTS.md`](AGENTS.md)。
 
 ## 开发与测试 / Development
 
