@@ -42,6 +42,10 @@ validation.py (path-aware Diagnostic helpers)
   mapping (`{"zh": {"title": ..., "description": ...}}`) so clients can render
   localized labels while the canonical English strings stay the default.
 - `ConfigProvider` — the protocol providers implement.
+- `WebUIWidgets` — an optional, documentation-only protocol for providers that
+  declare custom WebUI widgets via `web_ui_widgets()` (a mapping of
+  `field_type` to a JavaScript factory source string). It is never required;
+  providers without it render exactly as before.
 
 ### Engine (`engine.py`)
 
@@ -118,9 +122,14 @@ contains generation, validation, or serialization logic of its own:
 - `web_ui.py` — the `devconfig-gen ui` single-page studio, served by the
   standard-library `ThreadingHTTPServer`. The HTML/CSS/JS is embedded (no build
   step) and it calls the engine through a small JSON API. It renders each
-  `ProviderField` by `type`: `tree` fields get a recursive editor (add/remove/
-  retype/clear at any depth), `document` fields get a drop-zone plus inline
-  editor, and the header offers a "Clear All" reset for the active provider.
+  `ProviderField` through a table-driven widget registry: `string` / `integer` /
+  `boolean` / `mapping` / `document` / `tree` each map to a built-in widget, so
+  `tree` fields get a recursive editor (add/remove/retype/clear at any depth)
+  and `document` fields get a drop-zone plus inline editor. A provider may
+  register additional widgets for its own field types through the optional
+  `web_ui_widgets()` method, served by `/api/widgets` and registered into the
+  same table by the client (unknown types fall back to `string`). The header
+  offers a "Clear All" reset and a quick-links sidebar.
 
 The web server is local-only by design:
 

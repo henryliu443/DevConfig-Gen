@@ -14,13 +14,14 @@ Provider 是 DevConfig-Gen 的扩展点：它决定输入如何被校验、规�
 | `validate(request) -> Sequence[str]` | 返回渲染后的错误消息；空序列表示通过 |
 | `generate(request) -> GenerationResult` | 生成产物；出错时应抛出 `ValidationError` 或 `ValueError` |
 
-可选成员（引擎会探测并按需降级）：
+可选成员（引擎会探测并按需降级，缺少它们时 Provider 依然完整可用）：
 
 | 成员 | 作用 |
 | --- | --- |
 | `diagnose(request) -> Sequence[Diagnostic]` | 结构化诊断；未实现时 `diagnose_request` 把 `validate` 的消息包装为 `field=""` 的 `Diagnostic` |
 | `describe_schema() -> Sequence[ProviderStep]` | 声明式步骤/字段；未实现时读取 `steps` 属性，再退回空元组 |
 | `steps` | 类属性形式的步骤元数据 |
+| `web_ui_widgets() -> Mapping[str, str]` | 为 Web 工作台声明自定义字段 Widget；见[自定义 WebUI Widget](#自定义-webui-widget可选) |
 
 `generate` 的约定：先自行校验（`engine.generate` 也会先调用 `validate`），
 失败时抛出 `ValidationError`；成功时返回
@@ -45,9 +46,13 @@ Provider 是 DevConfig-Gen 的扩展点：它决定输入如何被校验、规�
 | `string` | 文本提示，支持默认值/选项 | 文本框或下拉框（有 `choices` 时） |
 | `integer` | 整数提示，支持 `minimum`/`maximum` | 数字输入框 |
 | `boolean` | y/n 提示 | 复选框 |
-| `mapping` / `dict` | 逐行 `key=value` 输入 | 键值对表格 |
+| `mapping` / `dict` | 逐行 `key=value` 输入（`dict` 是向导别名） | 键值对表格（`dict` 未注册，回退 `string`） |
 | `document` | 可输入文件路径，或退化为 `key=value` | 拖拽上传 + 内联文本编辑器 |
 | `tree` | 同 `document` | 结构模式（递归树）+ 文本模式（JSON/YAML） |
+
+Web 工作台内置 `string` / `integer` / `boolean` / `mapping` / `document` /
+`tree` 六个类型，每种对应一个注册的默认 Widget。Provider 还可以通过可选的
+`web_ui_widgets()` 注册全新类型（或覆盖内置类型）。
 
 `required`、`choices`、`minimum`、`maximum`、`default` 是客户端提示和
 约束元数据；是否真正强制由各 Provider 的 `validate` 决定。
@@ -268,12 +273,65 @@ class GreetingProvider:
 - `src/devconfig_gen/providers/env_provider.py`：演示真实转换、`diagnose`
   结构化诊断、多字段校验与纯文本产物。
 
+## 自定义 WebUI Widget（可选）
+
+Web 工作台的字段渲染是**查表驱动**的：`string` / `integer` / `boolean` /
+`mapping` / `document` / `tree` 六个内置类型各对应一个默认 Widget。Provider
+可以实现可选方法 `web_ui_widgets()`，返回 `{field_type: js_factory_source}`，
+把某个字段类型映射到一段 JavaScript 工厂源码，从而在不改动前端文件的前提下
+引入全新字段类型（或覆盖内置类型）。后端通过
+`GET /api/widgets?provider=<name>` 提供这些源码，前端在加载 schema 前把它们
+注册进同一张 Widget 表。
+
+```python
+class MyProvider:
+    name = "mydomain"
+
+    def web_ui_widgets(self):
+        return {
+            "node-editor": (
+                "(ctx) => {"
+                "  const el = document.createElement('div');"
+                "  el.className = 'node-editor';"
+                "  return el;"
+                "}"
+            )
+        }
+```
+
+工厂接收单个 `ctx` 参数并返回一个 DOM 元素（即该字段 `.form-group` 的内容）。
+`ctx` 暴露以下契约：
+
+| 成员 | 说明 |
+| --- | --- |
+| `ctx.field` | 当前 `ProviderField`（含 `name`、`type`、`default`、`choices`、`i18n` 等） |
+| `ctx.fid` | 字段名转义后的 id 片段（`.` 替换为 `_`） |
+| `ctx.grp` | 该字段的容器元素 |
+| `ctx.provider` | 当前 Provider 名称 |
+| `ctx.existing` | 字段当前值（缺省时回退到 `field.default`） |
+| `ctx.setValue(v)` | 写回该字段并触发草稿保存与实时预览 |
+| `ctx.setFormData(next)` | 整体替换表单数据并触发草稿保存与实时预览 |
+| `ctx.getFormData()` | 读取整份表单数据 |
+| `ctx.rerender()` | 重绘当前步骤 |
+
+约定与回退：
+
+- 只接受同源 `/api/widgets` 返回的代码；Widget 代码由 Provider 作者负责，
+  求值失败或返回非函数时在控制台报错并回退到该字段类型的内置 Widget；
+- 未知字段类型回退到 `string`；
+- 切换 Provider 时会先恢复默认 Widget 表，再注册新 Provider 的 Widget；
+- 未实现 `web_ui_widgets()` 的 Provider 行为完全不变。
+
+`WebUIWidgets` 协议（`devconfig_gen.models`，并从包根导出）仅作文档性声明，
+不强制继承，也永远不是 `ConfigProvider` 的必需成员。
+
 ## 元数据驱动的客户端
 
 - CLI `devconfig-gen schema --provider <name>` 打印
   `[step.as_dict() for step in describe_provider(name)]`；
 - `devconfig-gen init` 遍历 `steps`，按 `ProviderField.type` 提示输入；
-- Web 工作台的 `/api/schema` 返回相同结构，前端按类型渲染表单。
+- Web 工作台的 `/api/schema` 返回相同结构，前端按类型渲染表单，并通过
+  `/api/widgets` 加载 Provider 声明的自定义 Widget。
 
 新增 Provider 后无需修改 CLI、向导或 Web 工作台：注册到 `default_registry`
 （或传入自定义 `registry`）即可被三者识别。

@@ -10,7 +10,7 @@
 from devconfig_gen import (
     # 数据契约
     ConfigProvider, Diagnostic, GeneratedArtifact, GenerationRequest,
-    GenerationResult, ProviderField, ProviderStep,
+    GenerationResult, ProviderField, ProviderStep, WebUIWidgets,
     # 引擎
     build_request, generate, generate_from_file, generate_pipeline,
     validate_request, diagnose_request, describe_provider,
@@ -131,10 +131,14 @@ describe_provider(provider, registry=None) -> Sequence[ProviderStep]
 | `GenerationResult` | `provider`、`artifacts`、`diagnostics` | Provider 生成结果 |
 | `ProviderField` | `name`、`type`、`required`、`default`、`description`、`choices`、`minimum`、`maximum`、`title`、`i18n` | `title` 为空时 `as_dict()` 回退为 `name`；`i18n` 为空时省略 |
 | `ProviderStep` | `id`、`title`、`description`、`fields`、`i18n` | 步骤元数据 |
-| `ConfigProvider` | `name`、`generate`、`validate` | 结构化协议；`diagnose`、`describe_schema`/`steps` 可选 |
+| `ConfigProvider` | `name`、`generate`、`validate` | 结构化协议；`diagnose`、`describe_schema`/`steps`、`web_ui_widgets` 可选 |
+| `WebUIWidgets` | `web_ui_widgets()` | 可选、纯文档性协议：把 `field_type` 映射到 JavaScript 工厂源码；永不强制 |
 
 `ProviderField.type` 的约定取值（决定客户端如何渲染）：
 `string`、`integer`、`boolean`、`mapping`/`dict`、`document`、`tree`。
+`web_ui_widgets()` 可为 Web 工作台注册额外的类型；未声明的类型回退到
+`string`，未实现该方法的 Provider 行为不变。详见
+[Provider 参考与开发](providers.md#自定义-webui-widget可选)。
 
 ## 格式 API（formats）
 

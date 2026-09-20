@@ -3,7 +3,15 @@
 CLI 是 DevConfig-Gen 的主要使用面。所有命令都是无状态、脚本友好的：输入由
 参数和文件决定，产物写到显式目录，结果通过退出码和可选的 JSON 输出表达。
 
-调用方式：
+当前版本为 **1.1.0**；`devconfig-gen --version` 会打印包内
+`devconfig_gen.__version__`，例如：
+
+```text
+$ devconfig-gen --version
+devconfig-gen 1.1.0
+```
+
+两种调用方式等价：
 
 ```bash
 devconfig-gen <command> [options]                    # 已安装
@@ -28,7 +36,9 @@ PYTHONPATH=src python3 -m devconfig_gen.cli <command> [options]   # 源码运行
 | 选项 | 说明 |
 | --- | --- |
 | `-h, --help` | 查看帮助；也可用于子命令（`devconfig-gen generate --help`） |
-| `--version` | 打印 `devconfig-gen <version>`（读取包内 `__version__`） |
+| `--version` | 打印 `devconfig-gen <version>`（读取包内 `__version__`，当前为 `1.1.0`） |
+
+子命令是必填项：不带命令直接运行会由 argparse 报错并返回退出码 `2`。
 
 ## 通用约定
 
@@ -37,8 +47,8 @@ PYTHONPATH=src python3 -m devconfig_gen.cli <command> [options]   # 源码运行
 | 退出码 | 含义 |
 | --- | --- |
 | `0` | 成功 |
-| `1` | `validate` 发现 `error` 级诊断；`init` 被取消或输入结束 |
-| `2` | 用法/输入错误：未知 Provider、文件不存在或不可读、解析失败、`--set` 语法错误、产物名越界 |
+| `1` | `validate` 发现 `error` 级诊断；`init` 被取消、输入提前结束或生成失败 |
+| `2` | 用法/输入错误：缺少子命令、未知 Provider、文件不存在或不可读、解析失败、`--set` 语法错误、产物名越界；`generate` 的校验失败也归入此码 |
 
 脚本里可以直接用退出码做门禁：
 
@@ -50,8 +60,8 @@ fi
 
 ### 错误输出
 
-所有失败都以单行 `error: <message>` 写到 **stderr**（`validate` 的校验失败
-除外，见下文），例如：
+除 `validate` 的校验失败外，所有失败都以单行 `error: <message>` 写到
+**stderr**，例如：
 
 ```text
 error: unknown provider 'missing'; available: custom, env, json
@@ -77,6 +87,8 @@ custom
 env
 json
 ```
+
+该命令没有其他参数，正常结束时返回退出码 `0`。
 
 ## schema
 
@@ -137,7 +149,7 @@ usage: devconfig-gen generate [-h] [--provider PROVIDER] --input INPUT
 | `--provider` | 否 | `json` | Provider 名称 |
 | `--input` | **是** | — | JSON/YAML 输入文件；可重复，按出现顺序从左到右深度合并 |
 | `--output-dir` | **是** | — | 产物输出目录；不存在时自动创建 |
-| `--format` | 否 | 见下 | 输出格式 `json` 或 `yaml` |
+| `--format` | 否 | 见下 | **输出**格式 `json` 或 `yaml` |
 | `--name` | 否 | 由 Provider 决定 | 输出文件名，可包含子目录 |
 | `--set` | 否 | — | 点路径覆盖 `KEY=VALUE`；可重复，最后应用 |
 
@@ -161,10 +173,10 @@ devconfig-gen generate --provider custom \
 
 ### --input 细节
 
-- 每个文件独立检测格式：显式 `--format`（此处是输出格式，不覆盖输入）之外的
-  情况下按扩展名/内容判断，因此一次命令可以混用 `.yaml`、`.yml`、`.json`；
-- 同一个文件可以传多次，会重复合并；
+- 每个文件独立检测格式：按扩展名（`.json` / `.yaml` / `.yml`）与内容判断，
+  因此一次命令可以混用 `.yaml`、`.yml`、`.json`；
 - `--input` 必须是文件；目录会报 `cannot read ...: Is a directory`；
+- 同一个文件可以传多次，会重复合并；
 - 没有内置的 `-` 标准输入约定，但可以使用操作系统的 `/dev/stdin` 或进程
   替换（见 [CLI 配方](cli-cookbook.md#从标准输入或管道读取)）。
 
@@ -277,7 +289,7 @@ usage: devconfig-gen validate [-h] [--provider PROVIDER] --input INPUT
 | --- | --- | --- | --- |
 | `--provider` | 否 | `json` | Provider 名称 |
 | `--input` | **是** | — | 输入文件；可重复，合并规则与 `generate` 相同 |
-| `--format` | 否 | 自动 | **输入**格式覆盖（例如无后缀文件按 YAML 解析） |
+| `--format` | 否 | 自动 | **输入**格式覆盖；会强制所有 `--input` 按该格式解析（例如无后缀文件按 YAML 解析） |
 | `--set` | 否 | — | 校验前应用的点路径覆盖，规则与 `generate` 相同 |
 | `--json` | 否 | 关 | 以 JSON 数组打印全部诊断 |
 
@@ -306,6 +318,12 @@ $ devconfig-gen validate --provider env --input broken.yaml --json
     "severity": "error"
   }
 ]
+```
+
+`broken.yaml` 的内容是空变量映射，例如：
+
+```yaml
+variables: {}
 ```
 
 `--json` 的诊断对象字段固定为 `field`、`message`、`severity`（即
@@ -339,9 +357,12 @@ usage: devconfig-gen init [-h] [--provider PROVIDER] [--input INPUT]
 | `--output-dir` | `.` | 产物输出目录 |
 | `--format` | 无 | 指定后跳过输出格式提问 |
 
+退出码为 `0`（成功生成）或 `1`（取消、输入提前结束、未知 Provider、无向导
+步骤或生成失败）。
+
 ## ui
 
-启动本地 Web 工作台，详见[Web 工作台与 HTTP API](web-ui.md)。
+启动本地 Web 工作台，详见 [Web 工作台与 HTTP API](web-ui.md)。
 
 ```text
 usage: devconfig-gen ui [-h] [--host HOST] [--port PORT] [--no-browser]
@@ -355,7 +376,10 @@ usage: devconfig-gen ui [-h] [--host HOST] [--port PORT] [--no-browser]
 | `--no-browser` | 否 | 不自动打开浏览器 |
 | `--workspace` | 当前目录 | 允许 `/api/export` 写入的根目录 |
 
-服务持续运行，按 `Ctrl+C` 停止并返回 `0`。
+服务持续运行，按 `Ctrl+C` 停止并返回 `0`。1.1.0 起，工作台的字段渲染改为
+查表驱动，并支持 Provider 通过可选方法 `web_ui_widgets()` 注册自定义 Widget
+（`GET /api/widgets`），同时新增了汉堡侧边栏；这些都属于 WebUI 能力，细节见
+[Web 工作台与 HTTP API](web-ui.md#provider-自定义-widget)。
 
 ## 脚本化与自动化
 

@@ -40,9 +40,13 @@ PYTHONPATH=src python3 -m devconfig_gen.cli --help
 ## 验证安装
 
 ```bash
-devconfig-gen --version      # devconfig-gen 1.0.0
+devconfig-gen --version      # devconfig-gen 1.1.0
 devconfig-gen providers      # 输出三行：custom、env、json
 ```
+
+当前版本为 **1.1.0**，测试套件共 **143** 个用例。1.1.0 为 Web 工作台引入了
+查表驱动的字段渲染（六种内置类型 + Provider 自定义 Widget）、`☰` 汉堡侧边栏
+与空上下文检测；CLI 与 Python API 的行为保持不变。
 
 ## 第一个产物（3 分钟）
 
@@ -126,6 +130,10 @@ devconfig-gen init --provider custom
 devconfig-gen ui
 devconfig-gen ui --workspace ~/projects/my-app --no-browser
 ```
+
+工作台支持中英双语、亮/暗主题、分步表单、实时预览与草稿自动保存，字段渲染
+查表驱动；`custom` 提供递归树编辑器。界面细节见
+[Web 工作台与 HTTP API](web-ui.md)。
 
 ## 退出码
 
