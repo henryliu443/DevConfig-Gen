@@ -22,20 +22,20 @@ DevConfig-Gen 把「结构化输入 + 映射逻辑」变成「可预测、可校
 
 | 主题 / Topic | 本地 / Local | 在线 / Online |
 | --- | --- | --- |
-| 快速开始 | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/getting-started/) |
-| CLI 参考 | [`docs/cli.md`](docs/cli.md) | [cli](https://henryliu443.github.io/DevConfig-Gen/cli/) |
-| CLI 配方 | [`docs/cli-cookbook.md`](docs/cli-cookbook.md) | [cli-cookbook](https://henryliu443.github.io/DevConfig-Gen/cli-cookbook/) |
-| 输入合并与覆盖 | [`docs/input-and-merge.md`](docs/input-and-merge.md) | [input-and-merge](https://henryliu443.github.io/DevConfig-Gen/input-and-merge/) |
-| 格式支持与产物 | [`docs/formats.md`](docs/formats.md) | [formats](https://henryliu443.github.io/DevConfig-Gen/formats/) |
-| 校验与诊断 | [`docs/validation.md`](docs/validation.md) | [validation](https://henryliu443.github.io/DevConfig-Gen/validation/) |
-| Provider 开发 | [`docs/providers.md`](docs/providers.md) | [providers](https://henryliu443.github.io/DevConfig-Gen/providers/) |
-| Python API | [`docs/python-api.md`](docs/python-api.md) | [python-api](https://henryliu443.github.io/DevConfig-Gen/python-api/) |
-| 交互式向导 | [`docs/wizard.md`](docs/wizard.md) | [wizard](https://henryliu443.github.io/DevConfig-Gen/wizard/) |
-| Web 工作台与 HTTP API | [`docs/web-ui.md`](docs/web-ui.md) | [web-ui](https://henryliu443.github.io/DevConfig-Gen/web-ui/) |
-| 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`docs/architecture.md`](docs/architecture.md) | [architecture](https://henryliu443.github.io/DevConfig-Gen/architecture/) |
+| 快速开始 | [`docs/getting-started.md`](docs/getting-started.md) | [getting-started](https://henryliu443.github.io/DevConfig-Gen/docs/getting-started/) |
+| CLI 参考 | [`docs/cli.md`](docs/cli.md) | [cli](https://henryliu443.github.io/DevConfig-Gen/docs/cli/) |
+| CLI 配方 | [`docs/cli-cookbook.md`](docs/cli-cookbook.md) | [cli-cookbook](https://henryliu443.github.io/DevConfig-Gen/docs/cli-cookbook/) |
+| 输入合并与覆盖 | [`docs/input-and-merge.md`](docs/input-and-merge.md) | [input-and-merge](https://henryliu443.github.io/DevConfig-Gen/docs/input-and-merge/) |
+| 格式支持与产物 | [`docs/formats.md`](docs/formats.md) | [formats](https://henryliu443.github.io/DevConfig-Gen/docs/formats/) |
+| 校验与诊断 | [`docs/validation.md`](docs/validation.md) | [validation](https://henryliu443.github.io/DevConfig-Gen/docs/validation/) |
+| Provider 开发 | [`docs/providers.md`](docs/providers.md) | [providers](https://henryliu443.github.io/DevConfig-Gen/docs/providers/) |
+| Python API | [`docs/python-api.md`](docs/python-api.md) | [python-api](https://henryliu443.github.io/DevConfig-Gen/docs/python-api/) |
+| 交互式向导 | [`docs/wizard.md`](docs/wizard.md) | [wizard](https://henryliu443.github.io/DevConfig-Gen/docs/wizard/) |
+| Web 工作台与 HTTP API | [`docs/web-ui.md`](docs/web-ui.md) | [web-ui](https://henryliu443.github.io/DevConfig-Gen/docs/web-ui/) |
+| 架构总览 | [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`docs/architecture.md`](docs/architecture.md) | [architecture](https://henryliu443.github.io/DevConfig-Gen/docs/architecture/) |
 | Provider 铁标准 | [`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md) | — |
 | 全链路 pluggable 计划 | [`PIPELINE_PLAN.md`](PIPELINE_PLAN.md) | — |
-| 开发与测试 | [`docs/development.md`](docs/development.md) | [development](https://henryliu443.github.io/DevConfig-Gen/development/) |
+| 开发与测试 | [`docs/development.md`](docs/development.md) | [development](https://henryliu443.github.io/DevConfig-Gen/docs/development/) |
 
 ## 安装 / Install
 
