@@ -21,7 +21,7 @@ engine.py  ---- build_request / generate_pipeline / generate_from_file
   |            diagnose_request / describe_provider
   |            (the single shared pipeline, with multi-source deep_merge)
   v
-ProviderRegistry -> ConfigProvider (`custom`, `json`, `env`)
+ProviderRegistry -> ConfigProvider (`custom`, `json`, `env`, `singbox`)
   |
   v
 formats.py  (JSON/YAML load, dump, detection, media types, deep_merge, coerce_scalar)
@@ -109,6 +109,19 @@ while `Diagnostic.field` keeps the full dotted path for tooling.
   document. It proves the pipeline without imposing a schema.
 - `env` — flattens a nested mapping into `UPPER_SNAKE_CASE` `.env` text,
   demonstrating a non-JSON output format and a provider-driven schema step.
+- `singbox` — a rich-domain provider (child fork only) that turns a structured
+  context into sing-box `server` / `client` configs plus a share-link list. It
+  follows `PROVIDER_STANDARD.md`: variant detail lives in
+  `providers/singbox/plugins/<variant>.py` (one module per protocol), the
+  neutral layers (`provider.py` / `schema.py` / `route.py`) never mention a
+  protocol field name, and credentials/subdomain prefixes are explicit inputs
+  (no environment reads, no subprocesses, no state).
+
+  `providers/singbox/data/rules.json` is the first provider data file. It is
+  loaded with `Path(__file__).parent / "data" / "rules.json"` so the provider
+  works from an installed package with no external files; `network.routing`
+  selects `embedded` or `custom` rules and may extend the embedded buckets via
+  `custom_rules`.
 
 ### Interactive clients (`interactive.py`, `web_ui.py`)
 

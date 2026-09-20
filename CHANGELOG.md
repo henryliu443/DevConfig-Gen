@@ -6,6 +6,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`singbox` provider** (child-fork domain provider): generates
+  `sing-box.server.{json,yaml}`, `sing-box.client.{json,yaml}`, and
+  `sing-box-links.txt` from a structured context. Variant detail for `anytls`,
+  `tuic`, and `hysteria2` is isolated in `providers/singbox/plugins/` behind a
+  plugin contract; the neutral layers (`provider.py` / `schema.py` /
+  `route.py`) never mention a protocol field name. Credentials and subdomain
+  prefixes are explicit inputs (zero side effects, no environment reads, no
+  subprocesses). Routing rules load from the embedded
+  `providers/singbox/data/rules.json`, selectable/extendable through
+  `network.routing`.
+- `examples/singbox.yaml` sample input.
+
+### Changed
+
+- `default_registry` now registers `singbox` alongside `custom`, `json`, and
+  `env`; `devconfig-gen providers` lists four providers.
+
 ## [1.1.0]
 
 ### Added

@@ -43,6 +43,7 @@ CASES = [
     ("json", EXAMPLES / "custom.json"),
     ("env", EXAMPLES / "vars.yaml"),
 ]
+SINGBOX_EXAMPLE = EXAMPLES / "singbox.yaml"
 FORMATS = ["yaml", "json"]
 
 DOM_STUB = r"""
@@ -155,6 +156,47 @@ def webui_artifact(port, provider, context, fmt):
         return json.loads(resp.read().decode("utf-8"))["artifacts"][0]["content"]
 
 
+def webui_artifacts(port, provider, context, fmt):
+    payload = json.dumps({"provider": provider, "context": context, "format": fmt}).encode()
+    req = urllib.request.Request(
+        f"http://127.0.0.1:{port}/api/generate", data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req) as resp:
+        artifacts = json.loads(resp.read().decode("utf-8"))["artifacts"]
+    return {item["name"]: item["content"] for item in artifacts}
+
+
+def singbox_parity(port, work):
+    """Multi-artifact parity for the sing-box provider (API == CLI == WebUI)."""
+
+    context = load_file(SINGBOX_EXAMPLE)
+    checks = []
+    for fmt in FORMATS:
+        result = generate("singbox", GenerationRequest(context=context, options={"format": fmt}))
+        api = {
+            artifact.name: (
+                artifact.content if isinstance(artifact.content, str) else _dumps(artifact.content, fmt)
+            )
+            for artifact in result.artifacts
+        }
+        cli_dir = Path(work) / f"singbox_{fmt}"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(SRC)
+        proc = subprocess.run(
+            [sys.executable, "-m", "devconfig_gen.cli", "generate",
+             "--provider", "singbox", "--input", str(SINGBOX_EXAMPLE),
+             "--output-dir", str(cli_dir), "--format", fmt],
+            capture_output=True, text=True, cwd=str(ROOT), env=env,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(f"CLI failed for singbox/{fmt}: {proc.stderr}")
+        cli = {path.name: path.read_text(encoding="utf-8") for path in cli_dir.iterdir()}
+        web = webui_artifacts(port, "singbox", context, fmt)
+        checks.append((f"singbox/{fmt}", api == cli == web))
+    return checks
+
+
 def parity_round():
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -167,7 +209,8 @@ def parity_round():
                     api = api_artifact(provider, context, fmt)
                     cli = cli_artifact(provider, path, fmt, work)
                     web = webui_artifact(server.server_port, provider, context, fmt)
-                    checks.append((provider, fmt, api == cli == web))
+                    checks.append((f"{provider}/{fmt}", api == cli == web))
+            checks.extend(singbox_parity(server.server_port, work))
     finally:
         server.shutdown()
         server.server_close()
@@ -192,14 +235,14 @@ def main() -> int:
         suite_ok, count, out = run_suite()
         try:
             checks = parity_round()
-            parity_ok = all(c[2] for c in checks)
+            parity_ok = all(name_ok[1] for name_ok in checks)
         except Exception as exc:  # noqa: BLE001
             checks, parity_ok = [], False
             print(f"round {r}: parity error: {exc}")
         front_ok, front_out = frontend_smoke()
         status = "OK" if (suite_ok and parity_ok and front_ok) else "FAIL"
         all_ok = all_ok and suite_ok and parity_ok and front_ok
-        detail = " ".join(f"{p}/{f}{'' if ok else '!'}" for p, f, ok in checks)
+        detail = " ".join(f"{name}{'' if ok else '!'}" for name, ok in checks)
         print(f"round {r}: {status}  suite={count}  parity=[{detail}]  frontend={'OK' if front_ok else 'FAIL'}")
         if not suite_ok:
             print(out)

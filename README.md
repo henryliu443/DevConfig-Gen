@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)
-![Tests](https://img.shields.io/badge/tests-143%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)
 
 > Provider 驱动的结构化配置生成与校验引擎。
@@ -76,10 +76,53 @@ devconfig-gen ui                       # 本地 Web 工作台 / local web studio
 | `custom` | 无 schema 的通用文档，任意 JSON/YAML 层级可增删清空 / schema-free generic document, editable at any depth |
 | `json` | 透传 / 重新序列化任意文档 / pass-through and re-serialization |
 | `env` | 嵌套数据扁平化为 `UPPER_SNAKE_CASE` 的 `.env` / flattens nested data into `UPPER_SNAKE_CASE` `.env` |
+| `singbox` | sing-box 领域 Provider：server/client 配置 + 分享链接（仅本子仓库）/ sing-box domain provider: server/client configs + share links (child fork only) |
 
 ```bash
 devconfig-gen providers
-# custom / env / json
+# custom / env / json / singbox
+```
+
+### sing-box Provider（领域实现 / domain provider）
+
+`singbox` 把一份结构化 Context 变成 `sing-box.server.{json,yaml}`、
+`sing-box.client.{json,yaml}` 与 `sing-box-links.txt`。协议细节隔离在
+`providers/singbox/plugins/`，凭据与子域前缀全部显式输入（零副作用）。完整规范见
+[`PROVIDER_STANDARD.md`](PROVIDER_STANDARD.md)。
+
+```bash
+devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist
+devconfig-gen validate --provider singbox --input examples/singbox.yaml
+devconfig-gen schema --provider singbox
+```
+
+```yaml
+network:
+  domain_root: example.com
+  subdomain_prefixes: {reality: a1b2c3d4, tuic: e5f6a7b8, hy2: c9d0e1f2}
+  tunnel_mode: proxy          # none | proxy | tun
+  protocols:
+    - type: anytls            # anytls | tuic | hysteria2
+      enabled: true
+      port: 23244
+      auth: {password: replace-me}
+      reality: {private_key: ..., public_key: ..., short_id: ...}
+    - type: tuic
+      enabled: true
+      port: 9443
+      auth: {uuid: ..., password: ...}
+      tls: {cert_path: /etc/.../tuic.crt, key_path: /etc/.../tuic.key}
+    - type: hysteria2
+      enabled: true
+      port: 7443
+      auth: {password: ..., obfs_password: ...}
+      tls: {cert_path: /etc/.../hy2.crt, key_path: /etc/.../hy2.key}
+  routing: {rules_source: embedded, geoip_cn: true}   # 可用 custom_rules 覆盖/补充
+client:
+  server_ip: 203.0.113.10     # TUN 排除路由
+options:
+  target: both                # server | client | both
+  format: json                # json | yaml
 ```
 
 ## 命令行 / CLI
@@ -272,7 +315,7 @@ generate("greeting", GenerationRequest(context={"who": "world"}), registry=regis
 | `models` | `GenerationRequest` / `GenerationResult` / `Diagnostic` / `ProviderField` / `ProviderStep` / `ConfigProvider` / `WebUIWidgets` |
 | `registry` | `ProviderRegistry` 与内置 Provider |
 | `engine` | 编排、诊断、schema、持久化 |
-| `providers` | `custom` / `json` / `env` |
+| `providers` | `custom` / `json` / `env` / `singbox`（领域 Provider 见 `providers/singbox/`） |
 | `interactive` | `init` 终端向导（延迟加载） |
 | `web_ui` | `ui` 本地工作台（延迟加载） |
 | `cli` | 仅参数解析 |
