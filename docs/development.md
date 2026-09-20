@@ -7,13 +7,16 @@ DevConfig-Gen/
 ├── src/devconfig_gen/          核心包（见 docs/index.md 模块地图）
 │   ├── providers/              custom / json / env 三个内置 Provider
 │   └── py.typed                类型标记
-├── tests/                      unittest 测试套件（135 个用例）
+├── tests/                      unittest 测试套件（143 个用例）
 ├── examples/                   示例输入（custom.json / custom.yaml / vars.yaml）
-├── docs/                       本技术文档
+├── docs/                       本技术文档（MkDocs 源）
+├── mkdocs.yml                  MkDocs + Material 站点配置
 ├── ARCHITECTURE.md             架构与设计决策
+├── PROVIDER_STANDARD.md        Provider 铁标准（白皮书）
+├── PIPELINE_PLAN.md            全链路 pluggable 定调
 ├── CHANGELOG.md                版本变更记录
 ├── pyproject.toml              PEP 517/621 打包配置
-└── .github/workflows/          CI 与发布流水线
+└── .github/workflows/          CI / 文档 / 发布流水线
 ```
 
 ## 运行测试
@@ -28,8 +31,8 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 python -m unittest discover -s tests -v
 ```
 
-测试套件不需要 PyYAML：默认走内置 YAML 子集解析器/序列化器；PyYAML 分支在
-源码中以 `# pragma: no cover` 标注，不作为 CI 的必需路径。
+测试套件共 143 个用例，不需要 PyYAML：默认走内置 YAML 子集解析器/序列化器；
+PyYAML 分支在源码中以 `# pragma: no cover` 标注，不作为 CI 的必需路径。
 
 ### 测试文件与覆盖范围
 
@@ -46,6 +49,7 @@ python -m unittest discover -s tests -v
 | `test_api_parity.py` | CLI 与 Python API 产物逐字节一致 |
 | `test_interactive.py` | 向导的字段提示、重试、EOF、文件加载 |
 | `test_web_ui.py` | 单页 HTML 与全部 JSON 接口、Host 校验、导出沙箱 |
+| `test_web_ui_widgets.py` | 默认 Widget 渲染、注册表覆盖与回退、`/api/widgets`、自定义 Widget 注入 |
 
 运行单个测试文件：
 
@@ -68,16 +72,18 @@ python -m build            # 生成 dist/*.whl 与 dist/*.tar.gz
 
 - 包名：`devconfig-gen`，导入名：`devconfig_gen`；
 - 控制台脚本：`devconfig-gen = devconfig_gen.cli:main`；
-- 运行时依赖为空；可选依赖 `yaml`（PyYAML）与 `dev`（构建工具）；
+- 运行时依赖为空；可选依赖 `yaml`（PyYAML）、`dev`（构建工具）与
+  `docs`（`mkdocs-material`）；
 - 版本同时出现在 `pyproject.toml` 与 `src/devconfig_gen/__init__.py` 的
   `__version__`；CLI `--version` 直接读取 `__version__`，因此发布时两处需
   保持一致（测试 `test_version_matches_package_version` 会校验 CLI 与包
-  版本一致）。
+  版本一致）。当前版本为 `1.1.0`。
 
 ## 文档站点（GitHub Pages）
 
 `docs/` 目录通过根目录 `mkdocs.yml`（MkDocs + Material 主题）发布为项目文档
-站点，Markdown 文件本身仍是唯一内容来源。本地构建：
+站点，Markdown 文件本身仍是唯一内容来源，发布地址为
+<https://henryliu443.github.io/DevConfig-Gen/>。本地构建：
 
 ```bash
 pip install -e ".[docs]"     # 安装 mkdocs-material
@@ -99,6 +105,8 @@ mkdocs serve                 # 本地预览 http://127.0.0.1:8000
 - `build` 与 `deploy` 两个 job 都带有
   `if: github.ref == 'refs/heads/docs'`，因此即使在其它分支手动
   `workflow_dispatch` 也不会构建或部署；
+- 构建步骤先 `pip install -e ".[docs]"`，再执行 `mkdocs build --strict`，
+  并把 `site/` 作为 Pages 产物上传；
 - `permissions` 只申请 `contents: read`、`pages: write`、`id-token: write`，
   且 `concurrency: pages` 保证同一时间只有一次发布。
 
@@ -139,6 +147,8 @@ Trusted Publishing（OIDC）发布。发布操作只在 CI 中执行；本地开
   `docs/cli-cookbook.md` 中受影响的配方；
 - 新增/修改 Provider、格式行为、合并语义时，更新对应主题页
   （`providers.md`、`formats.md`、`input-and-merge.md`）；
+- 修改 Widget 协议或 `ctx` 字段时，同步更新 `PROVIDER_STANDARD.md`、
+  `ARCHITECTURE.md` 与 `docs/web-ui.md`；
 - 架构或设计决策变化时更新根目录 `ARCHITECTURE.md`，并同步
   `docs/architecture.md` 的摘要；
 - `docs/cli.md` 的命令/参数应与 `devconfig-gen <command> --help` 保持一致，

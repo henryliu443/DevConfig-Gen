@@ -2,7 +2,7 @@
 
 `devconfig-gen init` 提供纯终端的引导式配置流程，适合无头服务器、SSH 会话
 或终端优先的工作流。它完全由 Provider 的声明式 `steps` 驱动，不包含任何
-生成逻辑。
+生成逻辑，也不依赖 Web 工作台或浏览器。
 
 ```text
 usage: devconfig-gen init [-h] [--provider PROVIDER] [--input INPUT]

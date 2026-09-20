@@ -1,7 +1,7 @@
 # CLI 配方
 
-面向脚本和自动化的可复制命令。所有配方都在 macOS/Linux 的
-`bash`/`zsh` 下验证过；源码运行时把 `devconfig-gen` 换成
+面向脚本和自动化的可复制命令。以下配方在 macOS/Linux 的 `bash`/`zsh` 下
+验证通过；源码运行时把 `devconfig-gen` 换成
 `PYTHONPATH=src python3 -m devconfig_gen.cli` 即可。
 
 ## 分层配置：base + 环境覆盖
@@ -38,6 +38,15 @@ app:
   port: 9090
   labels:
     team: payments
+```
+
+`--input` 可混用格式，格式按扩展名与内容独立检测：
+
+```bash
+devconfig-gen generate --provider custom \
+  --input configs/base.yaml \
+  --input configs/prod.json \
+  --output-dir dist --name merged.yaml
 ```
 
 ## 用 --set 注入环境相关值
@@ -80,6 +89,28 @@ devconfig-gen generate --provider custom --input configs/base.yaml \
   --output-dir dist --format json
 ```
 
+## 多环境批量生成
+
+用 shell 循环为每个环境生成独立目录，并用 `--set` 打上环境标记：
+
+```bash
+for env in dev staging prod; do
+  devconfig-gen generate --provider custom \
+    --input configs/base.yaml \
+    --set app.environment=$env \
+    --set "build.label=$env-$(date +%Y%m%d)" \
+    --output-dir "dist/$env" --name app.yaml
+done
+```
+
+`--output-dir` 与 `--name` 都支持子目录，因此也可以单条命令写入嵌套路径：
+
+```bash
+devconfig-gen generate --provider custom \
+  --input configs/base.yaml \
+  --output-dir dist --name envs/prod/app.yaml
+```
+
 ## 从标准输入或管道读取
 
 CLI 没有内置的 `-` 约定，但 Unix 上可以使用 `/dev/stdin`：
@@ -102,6 +133,9 @@ jq -n '{app:{name:"jq-app",port:8080}}' \
   | devconfig-gen validate --provider custom --input /dev/stdin
 ```
 
+由于 `/dev/stdin` 与 `/dev/fd/*` 没有可识别的扩展名，格式由内容推断：
+以 `{` 或 `[` 开头按 JSON 解析，否则按 YAML 解析。
+
 ## JSON 与 YAML 互转
 
 ```bash
@@ -114,7 +148,8 @@ devconfig-gen generate --provider custom \
   --input configs/base.yaml --output-dir converted --name config.json
 ```
 
-输出格式由 `--name` 后缀决定，也可以显式 `--format yaml|json`。
+输出格式由 `--name` 后缀决定，也可以显式 `--format yaml|json`；显式
+`--format` 优先于后缀。
 
 ## 生成 .env
 
@@ -201,6 +236,9 @@ devconfig-gen generate --provider custom --input configs/base.yaml \
   --output-dir generated --format json
 git diff --exit-code -- generated/custom.json
 ```
+
+测试套件（143 个用例）包含 CLI 与 Python API 产物逐字节一致的断言
+（`tests/test_api_parity.py`），可作为该契约的回归保障。
 
 ## 常用组合
 

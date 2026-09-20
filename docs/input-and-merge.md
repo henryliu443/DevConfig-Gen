@@ -1,7 +1,8 @@
 # 输入合并与覆盖
 
 DevConfig-Gen 支持从多个来源组装同一条请求上下文：内存上下文、多个输入
-文件，以及最后的点路径覆盖。CLI 与 Python API 使用同一套规则。
+文件，以及最后的点路径覆盖。CLI 与 Python API 使用同一套规则，因此两条路径
+产生的产物逐字节一致。
 
 ## 数据来源与优先级
 
@@ -12,12 +13,14 @@ DevConfig-Gen 支持从多个来源组装同一条请求上下文：内存上下
 3. `overrides`（CLI `--set KEY=VALUE`，Python API `overrides=`），最后应用。
 
 对应实现：`engine.build_request` → `formats.deep_merge` →
-`engine._set_nested`。
+`engine._set_nested`。相关 CLI 细节见 [CLI 命令参考](cli.md)。
 
 ## 深度合并规则（deep_merge）
 
+`formats.deep_merge(base, overlay)` 的语义：
+
 - 当基底和覆盖层都是映射时：递归合并，嵌套键取并集；
-- 其他情况：覆盖层的值整体替换基底（标量、列表、映射替换标量等）；
+- 其他情况：覆盖层的值整体替换基底（标量、列表，以及用标量替换映射等）；
 - 不修改任何入参对象（返回新字典）。
 
 ```python
@@ -34,7 +37,7 @@ deep_merge({"a": [1]}, {"a": [2, 3]})   # {"a": [2, 3]}
 ```
 
 输入文件的格式各自独立检测：同一个命令里可以混用 `.yaml`、`.yml` 和
-`.json`。
+`.json`（检测规则见[格式支持与产物](formats.md#格式检测与选择)）。
 
 ## 覆盖（overrides）
 
@@ -102,4 +105,4 @@ result = generate_pipeline(
 ```
 
 测试 `tests/test_api_parity.py` 断言 CLI 与 Python API 生成的 JSON/YAML 产物
-逐字节一致。
+逐字节一致；该断言是 143 个用例测试套件的一部分。
