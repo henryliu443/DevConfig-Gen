@@ -44,7 +44,7 @@ devconfig-gen schema   --provider singbox
 | [Provider 参考与开发](providers.md) | 内置 Provider 的准确行为、元数据模型、自定义 Provider 指南 |
 | [Python API](python-api.md) | 包级导出、engine、formats、registry、models、validation |
 | [开发与测试](development.md) | 项目结构、测试、CI、文档维护 |
-| [架构总览](architecture.md) | 分层、数据流、扩展点；完整设计决策见仓库根目录 [ARCHITECTURE.md](https://github.com/henryliu443/DevConfig-Gen_SingBox/blob/main/ARCHITECTURE.md) |
+| [架构总览](architecture.md) | 分层、数据流、扩展点；完整设计决策见仓库根目录 [ARCHITECTURE.md](https://github.com/henryliu443/devconfig_gen_singbox/blob/main/ARCHITECTURE.md) |
 
 ## 能力清单
 

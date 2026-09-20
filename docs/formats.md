@@ -41,7 +41,7 @@ CLI 中：
 
 YAML 由两层实现支撑：
 
-1. 安装了 PyYAML（`pip install "devconfig-gen[yaml]"`）时：
+1. 安装了 PyYAML（`pip install "devconfig_gen_singbox[yaml]"`）时：
    - 解析使用 `yaml.safe_load`；
    - 序列化使用 `yaml.safe_dump(default_flow_style=False, sort_keys=False, allow_unicode=True)`；
    - 获得完整 YAML 语义。

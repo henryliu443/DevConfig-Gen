@@ -31,6 +31,23 @@ DevConfig-Gen_SingBox
 **父仓库拥有引擎，子仓库拥有领域。**
 **The parent owns the engine. The child owns the domain.**
 
+## 快速开始 / Quick Start
+
+```bash
+git clone https://github.com/henryliu443/devconfig_gen_singbox.git
+cd devconfig_gen_singbox
+pip install -e ".[yaml]"
+devconfig-gen generate --provider singbox --input examples/singbox.yaml --output-dir dist
+```
+
+未安装时亦可直接通过源码运行：
+
+```bash
+git clone https://github.com/henryliu443/devconfig_gen_singbox.git
+cd devconfig_gen_singbox
+PYTHONPATH=src python3 -m devconfig_gen.cli generate --provider singbox --input examples/singbox.yaml --output-dir dist
+```
+
 ## 本仓库是什么 / What this repository is
 
 > **Provider 是有限领域的实现，而不只是格式适配器。**

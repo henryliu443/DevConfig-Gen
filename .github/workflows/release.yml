@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/devconfig-gen
+      url: https://pypi.org/p/devconfig_gen_singbox
     permissions:
       id-token: write
     steps:

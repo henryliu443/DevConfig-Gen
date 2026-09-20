@@ -1,7 +1,7 @@
 # 架构总览
 
 本页是架构摘要。完整的设计决策与边界说明见仓库根目录
-[ARCHITECTURE.md](https://github.com/henryliu443/DevConfig-Gen_SingBox/blob/main/ARCHITECTURE.md)。
+[ARCHITECTURE.md](https://github.com/henryliu443/devconfig_gen_singbox/blob/main/ARCHITECTURE.md)。
 
 ## 目标
 

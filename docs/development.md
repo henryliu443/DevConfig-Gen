@@ -68,7 +68,7 @@ pip install -e ".[dev]"    # 安装 build / wheel / PyYAML
 python -m build            # 生成 dist/*.whl 与 dist/*.tar.gz
 ```
 
-- 包名：`devconfig-gen`，导入名：`devconfig_gen`；
+- 包名：`devconfig_gen_singbox`，导入名：`devconfig_gen`；
 - 控制台脚本：`devconfig-gen = devconfig_gen.cli:main`；
 - 运行时依赖为空；可选依赖 `yaml`（PyYAML）、`dev`（构建工具）与
   `docs`（`mkdocs-material`）；

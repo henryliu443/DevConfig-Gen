@@ -12,8 +12,8 @@
 ### 方式一：从仓库安装（开发模式）
 
 ```bash
-git clone https://github.com/henryliu443/DevConfig-Gen_SingBox.git
-cd DevConfig-Gen_SingBox
+git clone https://github.com/henryliu443/devconfig_gen_singbox.git
+cd devconfig_gen_singbox
 pip install -e ".[yaml]"     # 可选：安装 PyYAML
 ```
 
@@ -24,8 +24,8 @@ pip install -e ".[yaml]"     # 可选：安装 PyYAML
 发布工作流会在推送 `v*` 标签时构建并发布到 PyPI：
 
 ```bash
-pip install devconfig-gen            # 运行时零依赖
-pip install "devconfig-gen[yaml]"    # 可选 PyYAML
+pip install devconfig_gen_singbox            # 运行时零依赖
+pip install "devconfig_gen_singbox[yaml]"    # 可选 PyYAML
 ```
 
 ### 方式三：不安装，直接运行

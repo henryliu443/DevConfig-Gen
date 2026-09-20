@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- PyPI distribution name is now `devconfig_gen_singbox`. The child fork
+  previously reused the parent's `devconfig-gen` name, which collided with the
+  parent's trusted publisher and made OIDC publishing fail. The import package
+  (`devconfig_gen`) and the `devconfig-gen` console script are unchanged.
+
 ## [2.0.0]
 
 ### Added
