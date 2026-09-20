@@ -147,7 +147,25 @@
         <li data-i18n="f4">CLI, terminal wizard, and local Web studio</li>
         <li data-i18n-html="f5">Deterministic JSON / YAML / <code>.env</code> output</li>
         <li data-i18n="f6">Zero runtime dependencies</li>
+        <li data-i18n="f7">Pluggable by design: the Provider is the only extension point</li>
       </ul>
+    </section>
+
+    <section>
+      <h2 data-i18n="hExtend">Extensibility</h2>
+      <div class="prose">
+        <p data-i18n="extend1">
+          One extension point: the Provider. Register a provider to add a domain transformation, and
+          the CLI, terminal wizard, and Web studio pick it up with no code changes. Even WebUI field
+          rendering is table-driven — a provider can ship custom widgets through the optional
+          <code>web_ui_widgets()</code> method, served at <code>GET /api/widgets</code> and registered
+          into the same widget table.
+        </p>
+        <p data-i18n="extend2">
+          Providers that do not implement the optional hooks behave exactly as before: the core stays
+          provider-neutral, and domain-specific providers live in downstream forks — never in the core.
+        </p>
+      </div>
     </section>
 
     <section>
@@ -157,6 +175,7 @@
         <span class="chip">CLI · Wizard · Web UI</span>
         <span class="chip">JSON / YAML</span>
         <span class="chip">MkDocs</span>
+        <span class="chip" data-i18n="chipPluggable">Pluggable Providers</span>
         <span class="chip">Apache-2.0</span>
       </div>
     </section>
@@ -188,6 +207,11 @@
         f4: "CLI, terminal wizard, and local Web studio",
         f5: 'Deterministic JSON / YAML / <code>.env</code> output',
         f6: "Zero runtime dependencies",
+        f7: "Pluggable by design: the Provider is the only extension point",
+        hExtend: "Extensibility",
+        extend1: 'One extension point: the Provider. Register a provider to add a domain transformation, and the CLI, terminal wizard, and Web studio pick it up with no code changes. Even WebUI field rendering is table-driven — a provider can ship custom widgets through the optional <code>web_ui_widgets()</code> method, served at <code>GET /api/widgets</code> and registered into the same widget table.',
+        extend2: "Providers that do not implement the optional hooks behave exactly as before: the core stays provider-neutral, and domain-specific providers live in downstream forks — never in the core.",
+        chipPluggable: "Pluggable Providers",
         hStack: "Stack"
       },
       "zh-Hans": {
@@ -205,6 +229,11 @@
         f4: "CLI、终端向导与本地 Web 工作台",
         f5: '确定性的 JSON / YAML / <code>.env</code> 输出',
         f6: "零运行时依赖",
+        f7: "天生可插拔：Provider 是唯一扩展点",
+        hExtend: "扩展点",
+        extend1: '只有一个扩展点：Provider。注册一个 Provider 就能加入一种领域转换，CLI、终端向导与 Web 工作台无需改动即可识别。连 WebUI 的字段渲染也是查表驱动的——Provider 可以通过可选的 <code>web_ui_widgets()</code> 方法自带自定义 Widget，经 <code>GET /api/widgets</code> 下发并注册进同一张 Widget 表。',
+        extend2: "未实现可选钩子的 Provider 行为完全不变：核心始终保持 Provider 中立，领域专属 Provider 只存在于下游 fork，绝不进入核心。",
+        chipPluggable: "可插拔 Provider",
         hStack: "技术栈"
       },
       "yue": {
@@ -222,6 +251,11 @@
         f4: "CLI、終端精靈同本地 Web 工作台",
         f5: '穩定嘅 JSON / YAML / <code>.env</code> 輸出',
         f6: "零執行時依賴",
+        f7: "天生可插拔：Provider 係唯一擴展點",
+        hExtend: "擴展點",
+        extend1: '淨係得一個擴展點：Provider。註冊一個 Provider 就加到一種領域轉換，CLI、終端精靈同 Web 工作台唔使改都認得。連 WebUI 嘅欄位渲染都係查表驅動——Provider 可以透過可選嘅 <code>web_ui_widgets()</code> 方法自帶自訂 Widget，經 <code>GET /api/widgets</code> 派落嚟並註冊入同一張 Widget 表。',
+        extend2: "未實現可選鉤子嘅 Provider 行為完全唔變：核心一直保持 Provider 中立，領域專屬 Provider 淨係喺下游 fork 度，唔會入核心。",
+        chipPluggable: "可插拔 Provider",
         hStack: "技術棧"
       }
     };
