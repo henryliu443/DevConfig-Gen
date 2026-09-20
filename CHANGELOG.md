@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0]
+
 ### Added
 
 - **`singbox` provider** (child-fork domain provider): generates
@@ -29,6 +31,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   **Python API** only. The `WebUIWidgets` protocol and the `web_ui_widgets()`
   hook are gone with them.
 - `docs/wizard.md` and `docs/web-ui.md`, and their navigation/references.
+- The static HTML landing page (`landing/index.html`) and its docs-workflow
+  publishing step; the repository now contains no HTML.
 
 ### Changed
 
