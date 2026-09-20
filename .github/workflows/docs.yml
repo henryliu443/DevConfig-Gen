@@ -1,0 +1,63 @@
+name: Docs
+
+# Documentation is developed and published from the dedicated `docs` branch.
+# Nothing here runs for pushes to `main`.
+on:
+  push:
+    branches: [docs]
+    paths:
+      - "docs/**"
+      - "landing/**"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Lock: even a manual dispatch from another branch cannot build or deploy.
+    if: github.ref == 'refs/heads/docs'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install docs toolchain
+        run: python -m pip install -e ".[docs]"
+
+      - name: Build site (strict)
+        run: mkdocs build --strict
+
+      - name: Add landing page
+        run: |
+          mkdir -p site
+          cp landing/index.html site/index.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/docs'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
